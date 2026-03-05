@@ -1,0 +1,81 @@
+<Window x:Class="PasswordManager.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:vm="clr-namespace:PasswordManager.ViewModels"
+        mc:Ignorable="d"
+        Title="Настройки" 
+        Height="400" Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel, IsDesignTimeCreatable=False}">
+    
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Text="Настройки"
+                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                   Margin="0,0,0,24"/>
+
+        <!-- Settings -->
+        <StackPanel Grid.Row="1">
+            <!-- Startup -->
+            <CheckBox Content="Запускать при старте Windows"
+                      IsChecked="{Binding StartWithWindows}"
+                      Margin="0,0,0,16"/>
+
+            <!-- Minimize to tray -->
+            <CheckBox Content="Сворачивать в трей при закрытии"
+                      IsChecked="{Binding MinimizeToTray}"
+                      Margin="0,0,0,24"/>
+
+            <!-- Hotkey -->
+            <TextBlock Text="Горячая клавиша для быстрой вставки"
+                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                       Margin="0,0,0,8"/>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBox x:Name="HotkeyInput"
+                         Text="{Binding HotkeyDisplay, Mode=OneWay}"
+                         IsReadOnly="True"
+                         Width="200"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Нажмите сочетание клавиш"
+                         PreviewKeyDown="HotkeyInput_PreviewKeyDown"/>
+            </StackPanel>
+            
+            <TextBlock Text="Нажмите на поле и введите новую комбинацию клавиш"
+                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"
+                       Margin="0,0,0,16"/>
+
+            <!-- Error -->
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="{DynamicResource MaterialDesign.Brush.ValidationError}"
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource NullableToVisibilityConverter}}"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Отмена"
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    Margin="0,0,8,0"/>
+            <Button Content="Сохранить"
+                    Command="{Binding SaveCommand}"
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+        </StackPanel>
+    </Grid>
+</Window>

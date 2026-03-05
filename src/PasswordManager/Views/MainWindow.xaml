@@ -1,0 +1,256 @@
+<Window x:Class="PasswordManager.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:vm="clr-namespace:PasswordManager.ViewModels"
+        mc:Ignorable="d"
+        Title="Password Manager" 
+        Height="650" Width="950"
+        MinHeight="450" MinWidth="650"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
+    
+    <materialDesign:DialogHost IsOpen="{Binding IsDialogOpen}" CloseOnClickAway="False">
+        <materialDesign:DialogHost.DialogContent>
+            <materialDesign:Card Padding="24" MinWidth="400">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               Margin="0,0,0,24">
+                        <TextBlock.Text>
+                            <Binding Path="IsEditMode">
+                                <Binding.Converter>
+                                    <local:BoolToStringConverter TrueValue="Редактирование записи" FalseValue="Новая запись"
+                                                                  xmlns:local="clr-namespace:PasswordManager.Converters"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </TextBlock.Text>
+                    </TextBlock>
+
+                    <TextBox materialDesign:HintAssist.Hint="Название *"
+                             Text="{Binding DialogTitle, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,0,0,16"/>
+
+                    <TextBox materialDesign:HintAssist.Hint="Имя пользователя"
+                             Text="{Binding DialogUsername, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,0,0,16"/>
+
+                    <TextBox materialDesign:HintAssist.Hint="Пароль *"
+                             Text="{Binding DialogPassword, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,0,0,16"/>
+
+                    <TextBox materialDesign:HintAssist.Hint="URL"
+                             Text="{Binding DialogUrl, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Margin="0,0,0,16"/>
+
+                    <TextBox materialDesign:HintAssist.Hint="Заметки"
+                             Text="{Binding DialogNotes, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             MinHeight="80"
+                             VerticalContentAlignment="Top"
+                             Margin="0,0,0,16"/>
+
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="{DynamicResource MaterialDesign.Brush.ValidationError}"
+                               Visibility="{Binding ErrorMessage, Converter={StaticResource NullableToVisibilityConverter}}"
+                               Margin="0,0,0,16"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Отмена"
+                                Command="{Binding CancelDialogCommand}"
+                                Style="{StaticResource MaterialDesignFlatButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Сохранить"
+                                Command="{Binding SaveCredentialCommand}"
+                                Style="{StaticResource MaterialDesignRaisedButton}"/>
+                    </StackPanel>
+                </StackPanel>
+            </materialDesign:Card>
+        </materialDesign:DialogHost.DialogContent>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <materialDesign:ColorZone Mode="PrimaryMid" Padding="16" Grid.Row="0">
+                <DockPanel>
+                    <materialDesign:PackIcon Kind="ShieldKey" Width="32" Height="32" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                        <Button Style="{StaticResource MaterialDesignIconForegroundButton}" 
+                                Command="{Binding CheckBreachesCommand}"
+                                ToolTip="Проверить пароли на утечки"
+                                IsEnabled="{Binding IsBreachCheckRunning, Converter={StaticResource InverseBooleanConverter}}">
+                            <materialDesign:PackIcon Kind="ShieldAlert"/>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconForegroundButton}" 
+                                ToolTip="Настройки"
+                                Click="SettingsButton_Click">
+                            <materialDesign:PackIcon Kind="Cog"/>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconForegroundButton}" 
+                                Command="{Binding LockCommand}"
+                                ToolTip="Заблокировать">
+                            <materialDesign:PackIcon Kind="Lock"/>
+                        </Button>
+                    </StackPanel>
+
+                    <TextBox materialDesign:HintAssist.Hint="Поиск..." 
+                             materialDesign:TextFieldAssist.HasClearButton="True"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             Background="White"
+                             Margin="0,0,16,0"
+                             MaxWidth="400"/>
+                    
+                    <!-- Breach check status -->
+                    <StackPanel Orientation="Horizontal" 
+                                Visibility="{Binding IsBreachCheckRunning, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Margin="16,0,0,0">
+                        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                     Value="{Binding BreachCheckProgress}"
+                                     IsIndeterminate="False"
+                                     Width="24" Height="24"/>
+                        <TextBlock Text="{Binding BreachCheckStatus}"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"
+                                   Foreground="White"/>
+                    </StackPanel>
+                </DockPanel>
+            </materialDesign:ColorZone>
+
+            <!-- Main Content -->
+            <Grid Grid.Row="1" Margin="16">
+                <!-- Empty State -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding HasCredentials, Converter={StaticResource InverseBoolToVisConverter}}">
+                    <materialDesign:PackIcon Kind="KeyPlus" Width="64" Height="64" 
+                                             HorizontalAlignment="Center"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary.Light}"/>
+                    <TextBlock Text="Нет сохранённых паролей" 
+                               Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               HorizontalAlignment="Center"
+                               Margin="0,16,0,8"/>
+                    <TextBlock Text="Добавьте первую запись, нажав кнопку +" 
+                               Style="{StaticResource MaterialDesignBody2TextBlock}"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Credentials List -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding HasCredentials, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding Credentials}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <materialDesign:Card Padding="16" Margin="0,0,0,8"
+                                                     materialDesign:ElevationAssist.Elevation="Dp2">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <Border Grid.Column="0" 
+                                                Background="{DynamicResource MaterialDesign.Brush.Primary.Light}"
+                                                CornerRadius="20"
+                                                Width="40" Height="40"
+                                                VerticalAlignment="Center" 
+                                                Margin="0,0,16,0">
+                                            <TextBlock Text="{Binding Title[0]}" 
+                                                       FontSize="18" FontWeight="Medium"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
+                                        
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Title}" 
+                                                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                                                <materialDesign:PackIcon Kind="AlertCircle" 
+                                                                         Foreground="Red"
+                                                                         Margin="8,0,0,0"
+                                                                         ToolTip="Пароль скомпрометирован!"
+                                                                         Visibility="{Binding IsBreached, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Username}" 
+                                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"/>
+                                            <TextBlock Text="{Binding Url}" 
+                                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                                       Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"
+                                                       Visibility="{Binding Url, Converter={StaticResource NullableToVisibilityConverter}}"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                    ToolTip="Копировать логин"
+                                                    Command="{Binding DataContext.CopyUsernameCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <materialDesign:PackIcon Kind="AccountCircle"/>
+                                            </Button>
+                                            <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                    ToolTip="Копировать пароль"
+                                                    Command="{Binding DataContext.CopyPasswordCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <materialDesign:PackIcon Kind="ContentCopy"/>
+                                            </Button>
+                                            <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                    ToolTip="Редактировать"
+                                                    Command="{Binding DataContext.EditCredentialCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <materialDesign:PackIcon Kind="Pencil"/>
+                                            </Button>
+                                            <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                    ToolTip="Удалить"
+                                                    Foreground="{DynamicResource MaterialDesign.Brush.ValidationError}"
+                                                    Command="{Binding DataContext.DeleteCredentialCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <materialDesign:PackIcon Kind="Delete"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </materialDesign:Card>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Loading -->
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                             IsIndeterminate="True"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"/>
+            </Grid>
+
+            <!-- FAB -->
+            <Button Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
+                    Command="{Binding AddCredentialCommand}"
+                    ToolTip="Добавить запись"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,24,24"
+                    Grid.Row="1">
+                <materialDesign:PackIcon Kind="Plus" Width="24" Height="24"/>
+            </Button>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>
