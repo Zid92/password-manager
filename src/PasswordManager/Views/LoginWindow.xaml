@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:vm="clr-namespace:PasswordManager.ViewModels"
+        xmlns:converters="clr-namespace:PasswordManager.Converters"
         mc:Ignorable="d"
-        Title="Password Manager - Вход" 
-        Height="500" Width="400"
+        Title="Password Manager - Login" 
+        MinHeight="520" MinWidth="380"
+        Height="640" Width="440"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
         TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
         TextElement.FontWeight="Regular"
@@ -24,101 +25,144 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <materialDesign:ColorZone Mode="PrimaryMid" Padding="24" Grid.Row="0">
+        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16,24" Grid.Row="0">
             <StackPanel HorizontalAlignment="Center">
-                <materialDesign:PackIcon Kind="ShieldKey" Width="64" Height="64" HorizontalAlignment="Center"/>
+                <materialDesign:PackIcon Kind="ShieldKey" Width="48" Height="48" HorizontalAlignment="Center"/>
                 <TextBlock Text="Password Manager" 
-                           Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                           Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                            HorizontalAlignment="Center"
-                           Margin="0,16,0,0"/>
+                           Margin="0,12,0,0"/>
             </StackPanel>
         </materialDesign:ColorZone>
 
-        <!-- Login Form -->
-        <materialDesign:Card Grid.Row="1" Margin="24" Padding="24" 
-                             VerticalAlignment="Center"
-                             materialDesign:ElevationAssist.Elevation="Dp4">
-            <StackPanel>
-                <!-- Title based on first run or not -->
-                <TextBlock Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,24">
-                    <TextBlock.Text>
-                        <Binding Path="IsFirstRun">
-                            <Binding.Converter>
-                                <local:BoolToStringConverter TrueValue="Создание хранилища" FalseValue="Разблокировка"
-                                                              xmlns:local="clr-namespace:PasswordManager.Converters"/>
-                            </Binding.Converter>
-                        </Binding>
-                    </TextBlock.Text>
-                </TextBlock>
+        <!-- Scrollable Login Form -->
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <materialDesign:Card Margin="20" Padding="24" 
+                                 VerticalAlignment="Top"
+                                 HorizontalAlignment="Stretch"
+                                 materialDesign:ElevationAssist.Elevation="Dp4">
+                <StackPanel>
+                    <!-- Title -->
+                    <TextBlock Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,24"
+                               Text="{Binding IsFirstRun, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Create Vault|Unlock Vault'}"/>
 
-                <!-- Master Password -->
-                <PasswordBox x:Name="MasterPasswordBox"
-                             materialDesign:HintAssist.Hint="Мастер-пароль"
-                             Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
-                             Margin="0,0,0,16"/>
+                    <!-- Master Password Field -->
+                    <PasswordBox x:Name="MasterPasswordBox"
+                                 materialDesign:HintAssist.Hint="Master Password"
+                                 materialDesign:HintAssist.IsFloating="True"
+                                 Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
+                                 Margin="0,0,0,8"/>
+                    
+                    <!-- Master Password Error -->
+                    <TextBlock Text="{Binding MasterPasswordError}"
+                               Foreground="#D32F2F"
+                               FontSize="12"
+                               Margin="4,0,0,0"
+                               Visibility="{Binding HasMasterPasswordError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    
+                    <!-- Helper text for first run -->
+                    <TextBlock Text="Minimum 8 characters"
+                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"
+                               Margin="4,4,0,16"
+                               Visibility="{Binding IsFirstRun, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    
+                    <!-- Spacer for unlock mode -->
+                    <Border Height="16" 
+                            Visibility="{Binding IsFirstRun, Converter={StaticResource InverseBoolToVisConverter}}"/>
 
-                <!-- Confirm Password (only for first run) -->
-                <PasswordBox x:Name="ConfirmPasswordBox"
-                             materialDesign:HintAssist.Hint="Подтвердите пароль"
-                             Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
-                             Margin="0,0,0,16"
-                             Visibility="{Binding IsFirstRun, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-                <!-- Enable Windows Hello checkbox (only for first run) -->
-                <CheckBox Content="Включить Windows Hello"
-                          IsChecked="{Binding EnableWindowsHello}"
-                          Margin="0,0,0,16"
-                          Visibility="{Binding IsFirstRun, Converter={StaticResource BooleanToVisibilityConverter}}"
-                          IsEnabled="{Binding IsWindowsHelloAvailable}"/>
-
-                <!-- Error Message -->
-                <TextBlock Text="{Binding ErrorMessage}"
-                           Foreground="{DynamicResource MaterialDesign.Brush.ValidationError}"
-                           TextWrapping="Wrap"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,16"
-                           Visibility="{Binding ErrorMessage, Converter={StaticResource NullableToVisibilityConverter}}"/>
-
-                <!-- Unlock Button -->
-                <Button Content="Разблокировать"
-                        Command="{Binding UnlockCommand}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        HorizontalAlignment="Stretch"
-                        Height="40"
-                        Margin="0,0,0,16"
-                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"/>
-
-                <!-- Divider -->
-                <Grid Margin="0,8">
-                    <Separator/>
-                    <TextBlock Text="или" 
-                               HorizontalAlignment="Center" 
-                               Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
-                               Padding="8,0"/>
-                </Grid>
-
-                <!-- Windows Hello Button -->
-                <Button Style="{StaticResource MaterialDesignOutlinedButton}"
-                        Command="{Binding UnlockWithWindowsHelloCommand}"
-                        HorizontalAlignment="Stretch"
-                        Height="40"
-                        Visibility="{Binding IsFirstRun, Converter={StaticResource InverseBoolToVisConverter}}"
-                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Fingerprint" Margin="0,0,8,0"/>
-                        <TextBlock Text="Windows Hello"/>
+                    <!-- Confirm Password (only for first run) -->
+                    <StackPanel Visibility="{Binding IsFirstRun, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Margin="0,0,0,8">
+                        <PasswordBox x:Name="ConfirmPasswordBox"
+                                     materialDesign:HintAssist.Hint="Confirm Password"
+                                     materialDesign:HintAssist.IsFloating="True"
+                                     Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
+                                     Margin="0,0,0,8"/>
+                        
+                        <!-- Confirm Password Error -->
+                        <TextBlock Text="{Binding ConfirmPasswordError}"
+                                   Foreground="#D32F2F"
+                                   FontSize="12"
+                                   Margin="4,0,0,8"
+                                   Visibility="{Binding HasConfirmPasswordError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                     </StackPanel>
-                </Button>
 
-                <!-- Loading Indicator -->
-                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
-                             IsIndeterminate="True"
-                             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
-                             HorizontalAlignment="Center"
-                             Margin="0,16,0,0"/>
-            </StackPanel>
-        </materialDesign:Card>
+                    <!-- Enable Windows Hello checkbox (only for first run) -->
+                    <CheckBox Content="Enable Windows Hello"
+                              IsChecked="{Binding EnableWindowsHello}"
+                              Margin="0,8,0,8"
+                              Visibility="{Binding IsFirstRun, Converter={StaticResource BooleanToVisibilityConverter}}"
+                              IsEnabled="{Binding IsWindowsHelloAvailable}"/>
+                    
+
+                    <!-- General Error Message -->
+                    <Border Background="#FFEBEE" 
+                            BorderBrush="#D32F2F" 
+                            BorderThickness="1" 
+                            CornerRadius="4"
+                            Padding="12,10"
+                            Margin="0,8,0,16"
+                            Visibility="{Binding ErrorMessage, Converter={StaticResource NullableToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="AlertCircle" Foreground="#D32F2F" 
+                                                     Width="20" Height="20"
+                                                     VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding ErrorMessage}"
+                                       Foreground="#C62828"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"
+                                       MaxWidth="280"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Create/Unlock Button -->
+                    <Button Content="{Binding IsFirstRun, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Create Vault|Unlock'}"
+                            Command="{Binding UnlockCommand}"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            HorizontalAlignment="Stretch"
+                            Height="48"
+                            FontSize="15"
+                            Margin="0,8,0,0"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"/>
+
+                    <!-- Divider (only for unlock mode) -->
+                    <Grid Margin="0,20,0,16" 
+                          Visibility="{Binding IsFirstRun, Converter={StaticResource InverseBoolToVisConverter}}">
+                        <Separator VerticalAlignment="Center"/>
+                        <TextBlock Text="or" 
+                                   HorizontalAlignment="Center" 
+                                   Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                                   Padding="12,0"
+                                   Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"/>
+                    </Grid>
+
+                    <!-- Windows Hello Button (only for unlock mode) -->
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Command="{Binding UnlockWithWindowsHelloCommand}"
+                            HorizontalAlignment="Stretch"
+                            Height="48"
+                            Visibility="{Binding IsFirstRun, Converter={StaticResource InverseBoolToVisConverter}}"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Fingerprint" Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Unlock with Windows Hello" VerticalAlignment="Center" FontSize="14"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Loading Indicator -->
+                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 IsIndeterminate="True"
+                                 Width="32" Height="32"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                 HorizontalAlignment="Center"
+                                 Margin="0,20,0,0"/>
+                </StackPanel>
+            </materialDesign:Card>
+        </ScrollViewer>
     </Grid>
 </Window>

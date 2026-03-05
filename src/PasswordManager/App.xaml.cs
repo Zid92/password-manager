@@ -21,6 +21,19 @@ public partial class App : Application
 
     public App()
     {
+        // Global exception handlers
+        DispatcherUnhandledException += (s, e) =>
+        {
+            System.Windows.MessageBox.Show($"UI Error: {e.Exception.Message}\n\n{e.Exception.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
+        };
+        
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            var ex = e.ExceptionObject as Exception;
+            System.Windows.MessageBox.Show($"Fatal Error: {ex?.Message}\n\n{ex?.StackTrace}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        };
+
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {

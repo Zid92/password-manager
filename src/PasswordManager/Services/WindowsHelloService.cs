@@ -39,7 +39,7 @@ public class WindowsHelloService : IWindowsHelloService
 
     public async Task<bool> RegisterAsync()
     {
-        return await AuthenticateAsync("Настройка Windows Hello для Password Manager");
+        return await AuthenticateAsync("Set up Windows Hello for Password Manager");
     }
 
     public Task<string?> GetStoredPasswordAsync()

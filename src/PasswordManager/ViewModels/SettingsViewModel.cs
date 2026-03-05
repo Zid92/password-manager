@@ -39,8 +39,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         try
         {
-            var startWithWindows = await _databaseService.GetSettingAsync(SettingsKeys.StartWithWindows);
-            StartWithWindows = startWithWindows == "true";
+            // Check ACTUAL registry state for startup setting (not just database)
+            StartWithWindows = IsStartupEnabled();
 
             var minimizeToTray = await _databaseService.GetSettingAsync(SettingsKeys.MinimizeToTray);
             MinimizeToTray = minimizeToTray != "false";
@@ -64,6 +64,48 @@ public partial class SettingsViewModel : ViewModelBase
         catch
         {
             // Use defaults
+        }
+    }
+
+    private static bool IsStartupEnabled()
+    {
+        const string appName = "PasswordManager";
+        
+        try
+        {
+            // Check if entry exists in Run key
+            using var runKey = Registry.CurrentUser.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false);
+            
+            if (runKey == null) return false;
+            
+            var runValue = runKey.GetValue(appName);
+            if (runValue == null) return false;
+            
+            // Check if disabled via Task Manager (StartupApproved\Run)
+            using var approvedKey = Registry.CurrentUser.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", false);
+            
+            if (approvedKey != null)
+            {
+                var approvedValue = approvedKey.GetValue(appName) as byte[];
+                if (approvedValue != null && approvedValue.Length > 0)
+                {
+                    // First byte: 02 = enabled, 03 = disabled by user
+                    // Values 00, 01, 06 also indicate disabled states
+                    if (approvedValue[0] == 0x03 || approvedValue[0] == 0x00 || 
+                        approvedValue[0] == 0x01 || approvedValue[0] == 0x06)
+                    {
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -113,7 +155,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ошибка сохранения: {ex.Message}";
+            ErrorMessage = $"Error saving settings: {ex.Message}";
         }
     }
 
@@ -130,18 +172,52 @@ public partial class SettingsViewModel : ViewModelBase
 
         try
         {
-            using var key = Registry.CurrentUser.OpenSubKey(
+            using var runKey = Registry.CurrentUser.OpenSubKey(
                 @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
 
-            if (key == null) return;
+            if (runKey == null) return;
 
             if (enable && exePath != null)
             {
-                key.SetValue(appName, $"\"{exePath}\"");
+                // Add to Run key
+                runKey.SetValue(appName, $"\"{exePath}\"");
+                
+                // Enable in StartupApproved (remove disabled state)
+                try
+                {
+                    using var approvedKey = Registry.CurrentUser.OpenSubKey(
+                        @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", true);
+                    
+                    if (approvedKey != null)
+                    {
+                        // Set to enabled: first byte = 0x02, rest = timestamp (can be zeros)
+                        byte[] enabledValue = new byte[12];
+                        enabledValue[0] = 0x02;
+                        approvedKey.SetValue(appName, enabledValue, RegistryValueKind.Binary);
+                    }
+                }
+                catch
+                {
+                    // StartupApproved key might not exist, that's OK
+                }
             }
             else
             {
-                key.DeleteValue(appName, false);
+                // Remove from Run key
+                runKey.DeleteValue(appName, false);
+                
+                // Also remove from StartupApproved
+                try
+                {
+                    using var approvedKey = Registry.CurrentUser.OpenSubKey(
+                        @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", true);
+                    
+                    approvedKey?.DeleteValue(appName, false);
+                }
+                catch
+                {
+                    // Ignore
+                }
             }
         }
         catch

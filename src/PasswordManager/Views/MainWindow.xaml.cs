@@ -34,6 +34,11 @@ public partial class MainWindow : Window
         settingsWindow.ShowDialog();
     }
 
+    private void ExitButton_Click(object sender, RoutedEventArgs e)
+    {
+        ExitApplication();
+    }
+
     private void OnHotkeyChanged(object? sender, HotkeyChangedEventArgs e)
     {
         var hotkeyService = App.GetService<IGlobalHotkeyService>();
@@ -54,16 +59,16 @@ public partial class MainWindow : Window
     {
         _taskbarIcon = new TaskbarIcon
         {
-            ToolTipText = "Password Manager (Ctrl+Alt+P для быстрой вставки)"
+            ToolTipText = "Password Manager (Ctrl+Alt+P for quick insert)"
         };
 
         // Create context menu
         var contextMenu = new System.Windows.Controls.ContextMenu();
         
-        var showItem = new System.Windows.Controls.MenuItem { Header = "Показать" };
+        var showItem = new System.Windows.Controls.MenuItem { Header = "Show" };
         showItem.Click += (s, e) => ShowWindow();
         
-        var exitItem = new System.Windows.Controls.MenuItem { Header = "Выход" };
+        var exitItem = new System.Windows.Controls.MenuItem { Header = "Exit" };
         exitItem.Click += (s, e) => ExitApplication();
         
         contextMenu.Items.Add(showItem);
@@ -81,7 +86,7 @@ public partial class MainWindow : Window
             Hide();
             _taskbarIcon?.ShowBalloonTip(
                 "Password Manager",
-                "Приложение свёрнуто в трей. Нажмите Ctrl+Alt+P для быстрой вставки.",
+                "Application minimized to tray. Press Ctrl+Alt+P for quick insert.",
                 BalloonIcon.Info);
         }
     }

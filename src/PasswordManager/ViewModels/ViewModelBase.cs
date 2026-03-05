@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace PasswordManager.ViewModels;
 
-public abstract partial class ViewModelBase : ObservableObject
+public abstract partial class ViewModelBase : ObservableValidator
 {
     [ObservableProperty]
     private bool _isLoading;
@@ -11,4 +11,10 @@ public abstract partial class ViewModelBase : ObservableObject
     private string? _errorMessage;
 
     protected void ClearError() => ErrorMessage = null;
+    
+    protected void ClearAllErrors()
+    {
+        ErrorMessage = null;
+        ClearErrors();
+    }
 }

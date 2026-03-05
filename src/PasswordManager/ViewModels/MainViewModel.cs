@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -36,12 +37,16 @@ public partial class MainViewModel : ViewModelBase
     private bool _isEditMode;
 
     [ObservableProperty]
+    [NotifyDataErrorInfo]
+    [Required(ErrorMessage = "Title is required")]
     private string _dialogTitle = string.Empty;
 
     [ObservableProperty]
     private string _dialogUsername = string.Empty;
 
     [ObservableProperty]
+    [NotifyDataErrorInfo]
+    [Required(ErrorMessage = "Password is required")]
     private string _dialogPassword = string.Empty;
 
     [ObservableProperty]
@@ -144,8 +149,8 @@ public partial class MainViewModel : ViewModelBase
         if (item == null) return;
 
         var result = MessageBox.Show(
-            $"Удалить запись \"{item.Title}\"?",
-            "Подтверждение удаления",
+            $"Delete entry \"{item.Title}\"?",
+            "Confirm deletion",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
 
@@ -159,15 +164,12 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveCredentialAsync()
     {
-        if (string.IsNullOrWhiteSpace(DialogTitle))
+        // Validate all fields
+        ValidateAllProperties();
+        
+        if (HasErrors)
         {
-            ErrorMessage = "Введите название";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(DialogPassword))
-        {
-            ErrorMessage = "Введите пароль";
+            ErrorMessage = "Please fix the errors above";
             return;
         }
 
@@ -223,14 +225,14 @@ public partial class MainViewModel : ViewModelBase
 
         IsBreachCheckRunning = true;
         BreachCheckProgress = 0;
-        BreachCheckStatus = "Начинаем проверку...";
+        BreachCheckStatus = "Starting check...";
 
         try
         {
             var progress = new Progress<BreachCheckProgress>(p =>
             {
                 BreachCheckProgress = (int)((double)p.Current / p.Total * 100);
-                BreachCheckStatus = $"Проверка: {p.CurrentTitle} ({p.Current}/{p.Total})";
+                BreachCheckStatus = $"Checking: {p.CurrentTitle} ({p.Current}/{p.Total})";
             });
 
             await _breachCheckService.CheckAllCredentialsAsync(progress);
@@ -241,16 +243,16 @@ public partial class MainViewModel : ViewModelBase
             if (breachedCount > 0)
             {
                 MessageBox.Show(
-                    $"Найдено {breachedCount} скомпрометированных паролей! Рекомендуется их сменить.",
-                    "Проверка завершена",
+                    $"Found {breachedCount} compromised password(s)! It is recommended to change them.",
+                    "Check completed",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }
             else
             {
                 MessageBox.Show(
-                    "Все пароли безопасны!",
-                    "Проверка завершена",
+                    "All passwords are safe!",
+                    "Check completed",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
@@ -278,6 +280,6 @@ public partial class MainViewModel : ViewModelBase
         DialogPassword = string.Empty;
         DialogUrl = null;
         DialogNotes = null;
-        ClearError();
+        ClearAllErrors();
     }
 }

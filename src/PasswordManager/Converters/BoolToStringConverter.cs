@@ -12,6 +12,12 @@ public class BoolToStringConverter : IValueConverter
     {
         if (value is bool boolValue)
         {
+            // Support ConverterParameter format: "TrueText|FalseText"
+            if (parameter is string paramStr && paramStr.Contains('|'))
+            {
+                var parts = paramStr.Split('|');
+                return boolValue ? parts[0] : parts[1];
+            }
             return boolValue ? TrueValue : FalseValue;
         }
         return FalseValue;

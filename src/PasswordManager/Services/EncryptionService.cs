@@ -6,12 +6,16 @@ namespace PasswordManager.Services;
 public class EncryptionService : IEncryptionService
 {
     private byte[]? _key;
+    private string? _masterPassword;
     private const int KeySize = 32; // 256 bits for AES-256
     private const int SaltSize = 32;
     private const int Iterations = 100000;
 
+    public bool IsInitialized => _key != null;
+
     public void Initialize(string masterPassword)
     {
+        _masterPassword = masterPassword;
         _key = Rfc2898DeriveBytes.Pbkdf2(
             masterPassword,
             Encoding.UTF8.GetBytes("PasswordManagerFixedSalt"),
@@ -20,10 +24,18 @@ public class EncryptionService : IEncryptionService
             KeySize);
     }
 
-    public string Encrypt(string plainText)
+    private void EnsureInitialized()
     {
         if (_key == null)
-            throw new InvalidOperationException("Encryption service not initialized");
+        {
+            throw new InvalidOperationException(
+                "Encryption service not initialized. Please unlock the vault first.");
+        }
+    }
+
+    public string Encrypt(string plainText)
+    {
+        EnsureInitialized();
 
         using var aes = Aes.Create();
         aes.Key = _key;
@@ -42,8 +54,7 @@ public class EncryptionService : IEncryptionService
 
     public string Decrypt(string cipherText)
     {
-        if (_key == null)
-            throw new InvalidOperationException("Encryption service not initialized");
+        EnsureInitialized();
 
         var fullCipher = Convert.FromBase64String(cipherText);
 

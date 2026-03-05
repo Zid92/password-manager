@@ -28,6 +28,18 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isWindowsHelloAvailable;
 
+    [ObservableProperty]
+    private bool _hasMasterPasswordError;
+
+    [ObservableProperty]
+    private string? _masterPasswordError;
+
+    [ObservableProperty]
+    private bool _hasConfirmPasswordError;
+
+    [ObservableProperty]
+    private string? _confirmPasswordError;
+
     public LoginViewModel(
         INavigationService navigationService,
         IDatabaseService databaseService,
@@ -47,17 +59,27 @@ public partial class LoginViewModel : ViewModelBase
         IsWindowsHelloAvailable = await _windowsHelloService.IsAvailableAsync();
     }
 
+    private void ClearFieldErrors()
+    {
+        HasMasterPasswordError = false;
+        MasterPasswordError = null;
+        HasConfirmPasswordError = false;
+        ConfirmPasswordError = null;
+        ClearError();
+    }
+
     [RelayCommand]
     private async Task UnlockAsync()
     {
-        ClearError();
+        ClearFieldErrors();
         IsLoading = true;
 
         try
         {
             if (string.IsNullOrWhiteSpace(MasterPassword))
             {
-                ErrorMessage = "Введите мастер-пароль";
+                HasMasterPasswordError = true;
+                MasterPasswordError = "Master password is required";
                 return;
             }
 
@@ -72,7 +94,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ошибка: {ex.Message}";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {
@@ -82,17 +104,32 @@ public partial class LoginViewModel : ViewModelBase
 
     private async Task CreateVaultAsync()
     {
-        if (MasterPassword != ConfirmPassword)
-        {
-            ErrorMessage = "Пароли не совпадают";
-            return;
-        }
+        bool hasError = false;
 
         if (MasterPassword.Length < 8)
         {
-            ErrorMessage = "Пароль должен быть минимум 8 символов";
-            return;
+            HasMasterPasswordError = true;
+            MasterPasswordError = "Password must be at least 8 characters";
+            hasError = true;
         }
+
+        if (string.IsNullOrWhiteSpace(ConfirmPassword))
+        {
+            HasConfirmPasswordError = true;
+            ConfirmPasswordError = "Please confirm your password";
+            hasError = true;
+        }
+        else if (MasterPassword != ConfirmPassword)
+        {
+            HasConfirmPasswordError = true;
+            ConfirmPasswordError = "Passwords do not match";
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        // Initialize encryption service FIRST
+        _encryptionService.Initialize(MasterPassword);
 
         // Initialize database with master password
         await _databaseService.InitializeAsync(MasterPassword);
@@ -104,9 +141,6 @@ public partial class LoginViewModel : ViewModelBase
         // Store hash and salt in settings
         await _databaseService.SetSettingAsync(SettingsKeys.MasterPasswordHash, hash);
         await _databaseService.SetSettingAsync(SettingsKeys.Salt, Convert.ToBase64String(salt));
-
-        // Initialize encryption service
-        _encryptionService.Initialize(MasterPassword);
 
         // Setup Windows Hello if requested
         if (EnableWindowsHello && IsWindowsHelloAvailable)
@@ -135,7 +169,7 @@ public partial class LoginViewModel : ViewModelBase
 
             if (storedHash == null || storedSaltBase64 == null)
             {
-                ErrorMessage = "Хранилище повреждено";
+                ErrorMessage = "Vault is corrupted. Please create a new vault.";
                 return;
             }
 
@@ -144,7 +178,7 @@ public partial class LoginViewModel : ViewModelBase
             if (!_encryptionService.VerifyPassword(MasterPassword, storedHash, salt))
             {
                 _databaseService.Close();
-                ErrorMessage = "Неверный мастер-пароль";
+                ErrorMessage = "Incorrect master password. Please try again.";
                 return;
             }
 
@@ -155,7 +189,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         catch (SQLite.SQLiteException)
         {
-            ErrorMessage = "Неверный мастер-пароль";
+            ErrorMessage = "Incorrect master password. Please try again.";
         }
     }
 
@@ -169,17 +203,17 @@ public partial class LoginViewModel : ViewModelBase
         {
             if (!IsWindowsHelloAvailable)
             {
-                ErrorMessage = "Windows Hello недоступен на этом устройстве";
+                ErrorMessage = "Windows Hello is not available on this device";
                 return;
             }
 
             // Authenticate with Windows Hello
             var authenticated = await _windowsHelloService.AuthenticateAsync(
-                "Разблокировать Password Manager");
+                "Unlock Password Manager");
 
             if (!authenticated)
             {
-                ErrorMessage = "Аутентификация отменена";
+                ErrorMessage = "Authentication cancelled";
                 return;
             }
 
@@ -187,7 +221,7 @@ public partial class LoginViewModel : ViewModelBase
             var storedPassword = await _windowsHelloService.GetStoredPasswordAsync();
             if (storedPassword == null)
             {
-                ErrorMessage = "Windows Hello не настроен. Войдите с мастер-паролем";
+                ErrorMessage = "Windows Hello not configured. Please login with master password.";
                 return;
             }
 
@@ -196,7 +230,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ошибка Windows Hello: {ex.Message}";
+            ErrorMessage = $"Windows Hello error: {ex.Message}";
         }
         finally
         {

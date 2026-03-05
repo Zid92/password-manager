@@ -26,6 +26,11 @@ public class CredentialService : ICredentialService
 
     public async Task<int> SaveAsync(Credential credential, string plainPassword)
     {
+        if (!_encryption.IsInitialized)
+        {
+            throw new InvalidOperationException("Vault is locked. Please unlock to save.");
+        }
+        
         credential.EncryptedPassword = _encryption.Encrypt(plainPassword);
         return await _database.SaveCredentialAsync(credential);
     }
@@ -45,6 +50,11 @@ public class CredentialService : ICredentialService
 
     public string DecryptPassword(Credential credential)
     {
+        if (!_encryption.IsInitialized)
+        {
+            throw new InvalidOperationException("Vault is locked. Please unlock to view.");
+        }
+        
         return _encryption.Decrypt(credential.EncryptedPassword);
     }
 }

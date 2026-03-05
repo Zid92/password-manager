@@ -2,6 +2,7 @@ namespace PasswordManager.Services;
 
 public interface IEncryptionService
 {
+    bool IsInitialized { get; }
     void Initialize(string masterPassword);
     string Encrypt(string plainText);
     string Decrypt(string cipherText);

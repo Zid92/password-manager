@@ -7,10 +7,12 @@
         xmlns:vm="clr-namespace:PasswordManager.ViewModels"
         mc:Ignorable="d"
         Title="Quick Insert" 
-        Height="400" Width="450"
+        MinHeight="300" MinWidth="350"
+        Height="420" Width="480"
+        MaxHeight="600" MaxWidth="600"
         WindowStyle="None"
         AllowsTransparency="True"
-        ResizeMode="NoResize"
+        ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterScreen"
         Topmost="True"
         ShowInTaskbar="False"
@@ -40,51 +42,62 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <materialDesign:ColorZone Mode="PrimaryMid" Padding="12" Grid.Row="0" CornerRadius="6,6,0,0">
-                    <DockPanel>
-                        <materialDesign:PackIcon Kind="KeyboardOutline" Width="24" Height="24" 
-                                                 VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <TextBlock Text="Quick Insert" 
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                   VerticalAlignment="Center"/>
-                        <TextBlock Text="Ctrl+U: логин | Ctrl+P: пароль | Enter: оба"
+                <materialDesign:ColorZone Mode="PrimaryMid" Padding="10,8" Grid.Row="0" CornerRadius="6,6,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Orientation="Horizontal" Grid.Column="0">
+                            <materialDesign:PackIcon Kind="KeyboardOutline" Width="20" Height="20" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Quick Insert" 
+                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <TextBlock Grid.Column="1"
+                                   Text="Ctrl+U: username | Ctrl+P: password | Enter: both"
                                    Style="{StaticResource MaterialDesignCaptionTextBlock}"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Right"
-                                   Opacity="0.8"/>
-                    </DockPanel>
+                                   Opacity="0.8"
+                                   FontSize="10"/>
+                    </Grid>
                 </materialDesign:ColorZone>
 
                 <!-- Search -->
                 <TextBox x:Name="SearchBox"
                          Grid.Row="1"
-                         materialDesign:HintAssist.Hint="Поиск..."
+                         materialDesign:HintAssist.Hint="Search..."
                          materialDesign:TextFieldAssist.HasClearButton="True"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="12,12,12,8"/>
+                         Margin="10,10,10,6"/>
 
                 <!-- Credentials List -->
                 <ListBox Grid.Row="2"
                          ItemsSource="{Binding Credentials}"
                          SelectedItem="{Binding SelectedCredential}"
-                         Margin="12,0,12,12"
-                         BorderThickness="0">
+                         Margin="10,0,10,10"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="4">
+                            <Grid Margin="2,4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 
                                 <Border Background="{DynamicResource MaterialDesign.Brush.Primary.Light}"
-                                        CornerRadius="16"
-                                        Width="32" Height="32"
+                                        CornerRadius="14"
+                                        Width="28" Height="28"
                                         VerticalAlignment="Center" 
-                                        Margin="0,0,12,0">
+                                        Margin="0,0,10,0">
                                     <TextBlock Text="{Binding Title[0]}" 
-                                               FontSize="14" FontWeight="Medium"
+                                               FontSize="12" FontWeight="Medium"
                                                Foreground="White"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
@@ -92,10 +105,12 @@
                                 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Title}" 
-                                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}"/>
+                                               Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                               TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Text="{Binding Username}" 
                                                Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"/>
+                                               Foreground="{DynamicResource MaterialDesign.Brush.Foreground.Light}"
+                                               TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
@@ -103,21 +118,27 @@
                 </ListBox>
 
                 <!-- Bottom buttons -->
-                <StackPanel Grid.Row="3" Orientation="Horizontal" 
-                            HorizontalAlignment="Right" 
-                            Margin="12">
-                    <Button Content="Логин (Ctrl+U)"
+                <WrapPanel Grid.Row="3" 
+                           HorizontalAlignment="Right" 
+                           Margin="10,0,10,10">
+                    <Button Content="Username"
                             Command="{Binding InsertUsernameCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Margin="0,0,8,0"/>
-                    <Button Content="Пароль (Ctrl+P)"
+                            Padding="12,4"
+                            Margin="0,0,6,0"
+                            FontSize="12"/>
+                    <Button Content="Password"
                             Command="{Binding InsertPasswordCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
-                            Margin="0,0,8,0"/>
-                    <Button Content="Оба (Enter)"
+                            Padding="12,4"
+                            Margin="0,0,6,0"
+                            FontSize="12"/>
+                    <Button Content="Both"
                             Command="{Binding InsertBothCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}"/>
-                </StackPanel>
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Padding="16,4"
+                            FontSize="12"/>
+                </WrapPanel>
             </Grid>
         </materialDesign:Card>
     </Border>

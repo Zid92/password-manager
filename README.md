@@ -1,34 +1,30 @@
 # Password Manager
 
-Безопасный менеджер паролей для Windows с поддержкой глобальных горячих клавиш и интеллектуальным ранжированием.
+A secure password manager for Windows with global hotkey support and intelligent credential ranking.
 
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-purple)
 ![Windows](https://img.shields.io/badge/Platform-Windows-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## Возможности
+## Features
 
-- **Безопасное хранение** — пароли шифруются с помощью AES-256, база данных защищена SQLCipher
-- **Мастер-пароль** — единый пароль для доступа к хранилищу
-- **Windows Hello** — биометрическая аутентификация (отпечаток пальца, распознавание лица)
-- **Глобальные горячие клавиши** — быстрая вставка логина/пароля в любое приложение (по умолчанию `Ctrl+Alt+P`)
-- **Интеллектуальное ранжирование** — запоминает какие пароли использовались в каких приложениях
-- **Проверка утечек** — интеграция с [Have I Been Pwned](https://haveibeenpwned.com/) для проверки паролей
-- **System Tray** — работает в фоне, минимизируется в системный трей
-- **Material Design** — современный и красивый интерфейс
+- **Secure Storage** — Passwords encrypted with AES-256, database protected by SQLCipher
+- **Master Password** — Single password to access your vault
+- **Windows Hello** — Biometric authentication (fingerprint, facial recognition)
+- **Global Hotkeys** — Quick credential insertion into any application (default: `Ctrl+Alt+P`)
+- **Smart Ranking** — Remembers which credentials are used in which applications
+- **Breach Detection** — Integration with [Have I Been Pwned](https://haveibeenpwned.com/) to check for compromised passwords
+- **System Tray** — Runs in the background, minimizes to system tray
+- **Material Design** — Modern and beautiful UI
 
-## Скриншоты
-
-*Скриншоты будут добавлены позже*
-
-## Требования
+## Requirements
 
 - Windows 10/11
 - .NET 10 Runtime
 
-## Установка
+## Installation
 
-### Из исходного кода
+### From Source
 
 ```bash
 git clone https://github.com/yourusername/password-manager.git
@@ -37,63 +33,63 @@ dotnet build
 dotnet run --project src/PasswordManager
 ```
 
-### Сборка релиза
+### Build Release
 
 ```bash
 dotnet publish src/PasswordManager -c Release -r win-x64 --self-contained
 ```
 
-## Использование
+## Usage
 
-### Первый запуск
+### First Launch
 
-1. Запустите приложение
-2. Создайте мастер-пароль (минимум 8 символов)
-3. Опционально включите Windows Hello для быстрой разблокировки
+1. Launch the application
+2. Create a master password (minimum 8 characters)
+3. Optionally enable Windows Hello for quick unlock
 
-### Добавление пароля
+### Adding a Password
 
-1. Нажмите кнопку `+` в правом нижнем углу
-2. Заполните поля (название, логин, пароль, URL)
-3. Нажмите "Сохранить"
+1. Click the `+` button in the bottom right corner
+2. Fill in the fields (title, username, password, URL)
+3. Click "Save"
 
-### Быстрая вставка
+### Quick Insert
 
-1. Откройте приложение, где нужно ввести логин/пароль
-2. Нажмите `Ctrl+Alt+P` (или вашу настроенную комбинацию)
-3. Выберите нужную запись из списка
-4. Нажмите `Enter` для вставки логина и пароля
-   - `Ctrl+U` — только логин
-   - `Ctrl+P` — только пароль
+1. Open the application where you need to enter credentials
+2. Press `Ctrl+Alt+P` (or your configured hotkey)
+3. Select the desired entry from the list
+4. Press `Enter` to insert username and password
+   - `Ctrl+U` — username only
+   - `Ctrl+P` — password only
 
-### Проверка паролей на утечки
+### Checking Passwords for Breaches
 
-1. В главном окне нажмите иконку щита
-2. Дождитесь завершения проверки
-3. Скомпрометированные пароли будут отмечены красным значком
+1. In the main window, click the shield icon
+2. Wait for the check to complete
+3. Compromised passwords will be marked with a red badge
 
-## Безопасность
+## Security
 
-- Пароли хранятся в зашифрованной базе данных SQLite (SQLCipher)
-- Используется AES-256 для шифрования паролей
-- Мастер-ключ производится из мастер-пароля с помощью PBKDF2 (100,000 итераций)
-- При использовании Windows Hello, ключ защищён DPAPI и хранится в Windows Credential Manager
-- Проверка утечек использует k-anonymity (на сервер отправляются только первые 5 символов хэша)
+- Passwords are stored in an encrypted SQLite database (SQLCipher)
+- AES-256 is used for password encryption
+- Master key is derived from the master password using PBKDF2 (100,000 iterations)
+- When using Windows Hello, the key is protected by DPAPI and stored in Windows Credential Manager
+- Breach checking uses k-anonymity (only the first 5 characters of the hash are sent to the server)
 
-## Технологии
+## Technologies
 
-- [.NET 10](https://dotnet.microsoft.com/) — платформа
-- [WPF](https://docs.microsoft.com/en-us/dotnet/desktop/wpf/) — UI фреймворк
-- [MaterialDesignInXAML](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit) — Material Design стили
-- [CommunityToolkit.Mvvm](https://docs.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/) — MVVM фреймворк
-- [SQLite + SQLCipher](https://www.zetetic.net/sqlcipher/) — зашифрованная база данных
-- [Hardcodet.NotifyIcon.Wpf](https://github.com/hardcodet/wpf-notifyicon) — system tray
-- [Have I Been Pwned API](https://haveibeenpwned.com/API/v3) — проверка утечек
+- [.NET 10](https://dotnet.microsoft.com/) — Platform
+- [WPF](https://docs.microsoft.com/en-us/dotnet/desktop/wpf/) — UI Framework
+- [MaterialDesignInXAML](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit) — Material Design styles
+- [CommunityToolkit.Mvvm](https://docs.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/) — MVVM framework
+- [SQLite + SQLCipher](https://www.zetetic.net/sqlcipher/) — Encrypted database
+- [Hardcodet.NotifyIcon.Wpf](https://github.com/hardcodet/wpf-notifyicon) — System tray
+- [Have I Been Pwned API](https://haveibeenpwned.com/API/v3) — Breach checking
 
-## Лицензия
+## License
 
-MIT License. См. файл [LICENSE](LICENSE).
+MIT License. See [LICENSE](LICENSE) file.
 
-## Вклад
+## Contributing
 
-Pull requests приветствуются! Для крупных изменений сначала создайте issue.
+Pull requests are welcome! For major changes, please open an issue first.

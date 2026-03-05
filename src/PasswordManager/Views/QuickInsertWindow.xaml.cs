@@ -8,6 +8,7 @@ namespace PasswordManager.Views;
 public partial class QuickInsertWindow : Window
 {
     private readonly QuickInsertViewModel _viewModel;
+    private bool _isClosing;
 
     public QuickInsertWindow(QuickInsertViewModel viewModel)
     {
@@ -15,7 +16,7 @@ public partial class QuickInsertWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
 
-        _viewModel.RequestClose += (s, e) => Close();
+        _viewModel.RequestClose += (s, e) => SafeClose();
 
         Loaded += OnLoaded;
         Deactivated += OnDeactivated;
@@ -29,14 +30,29 @@ public partial class QuickInsertWindow : Window
 
     private void OnDeactivated(object? sender, EventArgs e)
     {
-        Close();
+        SafeClose();
+    }
+
+    private void SafeClose()
+    {
+        if (_isClosing) return;
+        _isClosing = true;
+        
+        try
+        {
+            Close();
+        }
+        catch
+        {
+            // Window already closing
+        }
     }
 
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
         {
-            Close();
+            SafeClose();
             e.Handled = true;
         }
         base.OnPreviewKeyDown(e);

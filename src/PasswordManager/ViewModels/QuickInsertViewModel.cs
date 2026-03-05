@@ -1,9 +1,10 @@
 using System.Collections.ObjectModel;
-using System.Windows.Forms;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PasswordManager.Models;
+using PasswordManager.Native;
 using PasswordManager.Services;
+using Clipboard = System.Windows.Clipboard;
 
 namespace PasswordManager.ViewModels;
 
@@ -93,6 +94,8 @@ public partial class QuickInsertViewModel : ViewModelBase
     {
         if (SelectedCredential == null) return;
         
+        var username = SelectedCredential.Username;
+        
         // Record usage
         if (_targetWindow != null)
         {
@@ -104,12 +107,12 @@ public partial class QuickInsertViewModel : ViewModelBase
         }
         
         RequestClose?.Invoke(this, EventArgs.Empty);
-        await Task.Delay(100);
+        await Task.Delay(150);
         
         _activeWindowService.RestoreFocusToLastWindow();
-        await Task.Delay(50);
+        await Task.Delay(100);
         
-        SendKeys.SendWait(SelectedCredential.Username);
+        await PasteTextAsync(username);
     }
 
     [RelayCommand]
@@ -133,12 +136,12 @@ public partial class QuickInsertViewModel : ViewModelBase
         }
         
         RequestClose?.Invoke(this, EventArgs.Empty);
-        await Task.Delay(100);
+        await Task.Delay(150);
         
         _activeWindowService.RestoreFocusToLastWindow();
-        await Task.Delay(50);
+        await Task.Delay(100);
         
-        SendKeys.SendWait(password);
+        await PasteTextAsync(password);
     }
 
     [RelayCommand]
@@ -149,6 +152,7 @@ public partial class QuickInsertViewModel : ViewModelBase
         var credential = await _credentialService.GetByIdAsync(SelectedCredential.Id);
         if (credential == null) return;
 
+        var username = SelectedCredential.Username;
         var password = _credentialService.DecryptPassword(credential);
         
         // Record usage
@@ -162,16 +166,17 @@ public partial class QuickInsertViewModel : ViewModelBase
         }
         
         RequestClose?.Invoke(this, EventArgs.Empty);
-        await Task.Delay(100);
+        await Task.Delay(150);
         
         _activeWindowService.RestoreFocusToLastWindow();
-        await Task.Delay(50);
+        await Task.Delay(100);
         
-        // Send username, Tab, password
-        SendKeys.SendWait(SelectedCredential.Username);
-        SendKeys.SendWait("{TAB}");
-        await Task.Delay(30);
-        SendKeys.SendWait(password);
+        // Paste username, send Tab, paste password
+        await PasteTextAsync(username);
+        await Task.Delay(100);
+        await SendTabAsync();
+        await Task.Delay(100);
+        await PasteTextAsync(password);
     }
 
     [RelayCommand]
@@ -202,5 +207,45 @@ public partial class QuickInsertViewModel : ViewModelBase
         {
             SelectedCredential = Credentials[index - 1];
         }
+    }
+
+    /// <summary>
+    /// Pastes text using clipboard + Ctrl+V via keybd_event (Win32 API).
+    /// </summary>
+    private static async Task PasteTextAsync(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        
+        // Set text to clipboard
+        Clipboard.SetText(text);
+        await Task.Delay(100);
+        
+        // Simulate Ctrl+V using keybd_event (Win32 API)
+        // Press Ctrl
+        NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, 0, UIntPtr.Zero);
+        await Task.Delay(30);
+        // Press V
+        NativeMethods.keybd_event(NativeMethods.VK_V, 0, 0, UIntPtr.Zero);
+        await Task.Delay(30);
+        // Release V
+        NativeMethods.keybd_event(NativeMethods.VK_V, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
+        await Task.Delay(30);
+        // Release Ctrl
+        NativeMethods.keybd_event(NativeMethods.VK_CONTROL, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
+        
+        await Task.Delay(100);
+    }
+    
+    /// <summary>
+    /// Simulates Tab key press using keybd_event.
+    /// </summary>
+    private static async Task SendTabAsync()
+    {
+        const byte VK_TAB = 0x09;
+        
+        NativeMethods.keybd_event(VK_TAB, 0, 0, UIntPtr.Zero);
+        await Task.Delay(30);
+        NativeMethods.keybd_event(VK_TAB, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
+        await Task.Delay(50);
     }
 }

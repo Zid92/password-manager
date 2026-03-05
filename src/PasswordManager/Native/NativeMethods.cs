@@ -40,4 +40,11 @@ public static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern IntPtr SetFocus(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+    public const byte VK_CONTROL = 0x11;
+    public const byte VK_V = 0x56;
+    public const uint KEYEVENTF_KEYUP = 0x0002;
 }
