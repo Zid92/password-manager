@@ -5,17 +5,39 @@ namespace PasswordManager.Maui.Services;
 public class MauiBiometricService : IBiometricService
 {
     private const string MasterKeyStorageKey = "PasswordManager_MasterKey";
+    private const string BiometricEnabledKey = "PasswordManager_BiometricEnabled";
 
-    public async Task<bool> IsAvailableAsync()
+    public Task<bool> IsAvailableAsync()
     {
+#if ANDROID
         try
         {
-            return await SecureStorage.Default.GetAsync("__biometric_check__") != null || true;
+            var context = Android.App.Application.Context;
+            var biometricManager = AndroidX.Biometric.BiometricManager.From(context);
+            var canAuthenticate = biometricManager.CanAuthenticate(
+                AndroidX.Biometric.BiometricManager.Authenticators.BiometricStrong |
+                AndroidX.Biometric.BiometricManager.Authenticators.BiometricWeak);
+            return Task.FromResult(canAuthenticate == AndroidX.Biometric.BiometricManager.BiometricSuccess);
         }
         catch
         {
-            return false;
+            return Task.FromResult(false);
         }
+#elif IOS || MACCATALYST
+        try
+        {
+            var context = new LocalAuthentication.LAContext();
+            return Task.FromResult(context.CanEvaluatePolicy(
+                LocalAuthentication.LAPolicy.DeviceOwnerAuthenticationWithBiometrics,
+                out _));
+        }
+        catch
+        {
+            return Task.FromResult(false);
+        }
+#else
+        return Task.FromResult(false);
+#endif
     }
 
     public async Task<bool> AuthenticateAsync(string reason)
@@ -23,36 +45,57 @@ public class MauiBiometricService : IBiometricService
 #if ANDROID
         try
         {
-            var context = Platform.CurrentActivity;
-            if (context == null) return false;
-
-            var executor = AndroidX.Core.Content.ContextCompat.GetMainExecutor(context);
-            var biometricPrompt = new AndroidX.Biometric.BiometricPrompt(
-                (AndroidX.Fragment.App.FragmentActivity)context,
-                executor,
-                new BiometricAuthCallback());
-
-            var promptInfo = new AndroidX.Biometric.BiometricPrompt.PromptInfo.Builder()
-                .SetTitle("Unlock Password Manager")
-                .SetSubtitle(reason)
-                .SetNegativeButtonText("Cancel")
-                .Build();
+            var activity = Platform.CurrentActivity;
+            if (activity == null) return false;
 
             var tcs = new TaskCompletionSource<bool>();
-            biometricPrompt.Authenticate(promptInfo);
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    var fragmentActivity = activity as AndroidX.Fragment.App.FragmentActivity;
+                    if (fragmentActivity == null)
+                    {
+                        tcs.TrySetResult(false);
+                        return;
+                    }
+
+                    var executor = AndroidX.Core.Content.ContextCompat.GetMainExecutor(activity);
+                    var callback = new BiometricCallback(tcs);
+
+                    var biometricPrompt = new AndroidX.Biometric.BiometricPrompt(
+                        fragmentActivity,
+                        executor,
+                        callback);
+
+                    var promptInfo = new AndroidX.Biometric.BiometricPrompt.PromptInfo.Builder()
+                        .SetTitle("Password Manager")
+                        .SetSubtitle(reason)
+                        .SetNegativeButtonText("Cancel")
+                        .Build();
+
+                    biometricPrompt.Authenticate(promptInfo);
+                }
+                catch (Exception)
+                {
+                    tcs.TrySetResult(false);
+                }
+            });
+
             return await tcs.Task;
         }
         catch
         {
             return false;
         }
-#elif IOS
+#elif IOS || MACCATALYST
         try
         {
             var context = new LocalAuthentication.LAContext();
             var canEvaluate = context.CanEvaluatePolicy(
                 LocalAuthentication.LAPolicy.DeviceOwnerAuthenticationWithBiometrics,
-                out var error);
+                out _);
 
             if (!canEvaluate) return false;
 
@@ -67,54 +110,95 @@ public class MauiBiometricService : IBiometricService
             return false;
         }
 #else
-        return await Task.FromResult(false);
+        await Task.CompletedTask;
+        return false;
 #endif
     }
 
     public async Task<bool> IsEnabledAsync()
     {
-        var value = await SecureStorage.Default.GetAsync($"{MasterKeyStorageKey}_enabled");
-        return value == "true";
+        try
+        {
+            var value = await SecureStorage.Default.GetAsync(BiometricEnabledKey);
+            return value == "true";
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task SetEnabledAsync(bool enabled)
     {
-        if (enabled)
+        try
         {
-            await SecureStorage.Default.SetAsync($"{MasterKeyStorageKey}_enabled", "true");
+            if (enabled)
+            {
+                await SecureStorage.Default.SetAsync(BiometricEnabledKey, "true");
+            }
+            else
+            {
+                SecureStorage.Default.Remove(BiometricEnabledKey);
+            }
         }
-        else
+        catch
         {
-            SecureStorage.Default.Remove($"{MasterKeyStorageKey}_enabled");
+            // Ignore storage errors
         }
     }
 
     public async Task StoreMasterKeyAsync(string key)
     {
-        await SecureStorage.Default.SetAsync(MasterKeyStorageKey, key);
+        try
+        {
+            await SecureStorage.Default.SetAsync(MasterKeyStorageKey, key);
+        }
+        catch
+        {
+            // Ignore storage errors
+        }
     }
 
     public async Task<string?> RetrieveMasterKeyAsync()
     {
-        return await SecureStorage.Default.GetAsync(MasterKeyStorageKey);
+        try
+        {
+            return await SecureStorage.Default.GetAsync(MasterKeyStorageKey);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public Task ClearStoredKeyAsync()
     {
-        SecureStorage.Default.Remove(MasterKeyStorageKey);
-        SecureStorage.Default.Remove($"{MasterKeyStorageKey}_enabled");
+        try
+        {
+            SecureStorage.Default.Remove(MasterKeyStorageKey);
+            SecureStorage.Default.Remove(BiometricEnabledKey);
+        }
+        catch
+        {
+            // Ignore storage errors
+        }
         return Task.CompletedTask;
     }
 
 #if ANDROID
-    private class BiometricAuthCallback : AndroidX.Biometric.BiometricPrompt.AuthenticationCallback
+    private class BiometricCallback : AndroidX.Biometric.BiometricPrompt.AuthenticationCallback
     {
-        public TaskCompletionSource<bool>? TaskSource { get; set; }
+        private readonly TaskCompletionSource<bool> _tcs;
+
+        public BiometricCallback(TaskCompletionSource<bool> tcs)
+        {
+            _tcs = tcs;
+        }
 
         public override void OnAuthenticationSucceeded(AndroidX.Biometric.BiometricPrompt.AuthenticationResult result)
         {
             base.OnAuthenticationSucceeded(result);
-            TaskSource?.TrySetResult(true);
+            _tcs.TrySetResult(true);
         }
 
         public override void OnAuthenticationFailed()
@@ -122,10 +206,10 @@ public class MauiBiometricService : IBiometricService
             base.OnAuthenticationFailed();
         }
 
-        public override void OnAuthenticationError(int errorCode, Java.Lang.ICharSequence errString)
+        public override void OnAuthenticationError(int errorCode, Java.Lang.ICharSequence? errString)
         {
             base.OnAuthenticationError(errorCode, errString);
-            TaskSource?.TrySetResult(false);
+            _tcs.TrySetResult(false);
         }
     }
 #endif
