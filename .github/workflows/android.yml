@@ -1,0 +1,91 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'src/PasswordManager.Core/**'
+      - 'src/PasswordManager.Maui/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui-android
+
+      - name: Restore dependencies
+        run: dotnet restore src/PasswordManager.Maui/PasswordManager.Maui.csproj
+
+      - name: Build Android APK (Debug)
+        run: |
+          dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj `
+            -f net10.0-android `
+            -c Debug `
+            -o ./artifacts/android
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-debug
+          path: ./artifacts/android/**/*.apk
+
+  build-android-release:
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui-android
+
+      - name: Decode Keystore
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          $bytes = [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64)
+          [IO.File]::WriteAllBytes("keystore.jks", $bytes)
+
+      - name: Restore dependencies
+        run: dotnet restore src/PasswordManager.Maui/PasswordManager.Maui.csproj
+
+      - name: Build Android APK (Release)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj `
+            -f net10.0-android `
+            -c Release `
+            -p:AndroidKeyStore=true `
+            -p:AndroidSigningKeyStore=keystore.jks `
+            -p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS `
+            -p:AndroidSigningKeyPass=$env:ANDROID_KEY_PASSWORD `
+            -p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD `
+            -o ./artifacts/android-release
+
+      - name: Upload Signed Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-release
+          path: ./artifacts/android-release/**/*-Signed.apk

@@ -1,0 +1,39 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Core library
+        run: dotnet build src/PasswordManager.Core/PasswordManager.Core.csproj --no-restore
+
+      - name: Build WPF application
+        run: dotnet build src/PasswordManager/PasswordManager.csproj --no-restore
+
+      - name: Run tests
+        run: dotnet test tests/PasswordManager.Tests/PasswordManager.Tests.csproj --no-build --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults/*.trx

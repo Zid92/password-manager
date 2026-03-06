@@ -6,6 +6,7 @@ A secure, cross-platform password manager with global hotkey support and intelli
 ![Windows](https://img.shields.io/badge/Platform-Windows-blue)
 ![iOS](https://img.shields.io/badge/Platform-iOS-lightgray)
 ![Android](https://img.shields.io/badge/Platform-Android-green)
+![Build](https://img.shields.io/github/actions/workflow/status/Zid92/password-manager/ci.yml?branch=master)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
@@ -145,6 +146,37 @@ dotnet test --logger "console;verbosity=detailed"
 - Master key is derived from the master password using PBKDF2 (100,000 iterations)
 - When using Windows Hello, the key is protected by DPAPI and stored in Windows Credential Manager
 - Breach checking uses k-anonymity (only the first 5 characters of the hash are sent to the server)
+
+## CI/CD
+
+The project uses GitHub Actions for continuous integration and deployment.
+
+### Workflows
+
+| Workflow | Trigger | Description |
+|----------|---------|-------------|
+| **Build and Test** | Push/PR to master | Builds Core, WPF projects and runs all tests |
+| **Build Android** | Push to master (MAUI changes) | Builds debug APK for testing |
+| **Build iOS** | Push to master (MAUI changes) | Builds iOS simulator build |
+| **Create Release** | Tag `v*` | Creates release with Windows and Android builds |
+
+### Manual Testing
+
+Download artifacts from workflow runs:
+1. Go to [Actions](../../actions)
+2. Select a workflow run
+3. Download artifacts (APK, Windows build)
+
+### Release Process
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This triggers the release workflow and creates a GitHub release with:
+- Windows WPF self-contained executable
+- Android APK
 
 ## Technologies
 
