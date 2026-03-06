@@ -32,6 +32,7 @@
 
             <!-- Master Password -->
             <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#2D2D2D}"
                    CornerRadius="8"
                    Padding="8,4"
                    HasShadow="False">
@@ -39,6 +40,8 @@
                     <Entry Placeholder="Master Password"
                            Text="{Binding MasterPassword}"
                            IsPassword="{Binding IsMasterPasswordHidden}"
+                           TextColor="{AppThemeBinding Light=#212121, Dark=White}"
+                           PlaceholderColor="{AppThemeBinding Light=Gray, Dark=#AAAAAA}"
                            ReturnType="Next" />
                     <Button Grid.Column="1"
                             Text="{Binding IsMasterPasswordHidden, Converter={StaticResource BoolToStringConverter}, ConverterParameter='👁|🙈'}"
@@ -54,6 +57,7 @@
 
             <!-- Confirm Password (only for first run) -->
             <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#2D2D2D}"
                    CornerRadius="8"
                    Padding="8,4"
                    HasShadow="False"
@@ -62,6 +66,8 @@
                     <Entry Placeholder="Confirm Password"
                            Text="{Binding ConfirmPassword}"
                            IsPassword="{Binding IsConfirmPasswordHidden}"
+                           TextColor="{AppThemeBinding Light=#212121, Dark=White}"
+                           PlaceholderColor="{AppThemeBinding Light=Gray, Dark=#AAAAAA}"
                            ReturnType="Done" />
                     <Button Grid.Column="1"
                             Text="{Binding IsConfirmPasswordHidden, Converter={StaticResource BoolToStringConverter}, ConverterParameter='👁|🙈'}"

@@ -303,6 +303,9 @@ public partial class CredentialItemViewModel : ObservableObject
     private string? _url;
 
     [ObservableProperty]
+    private string? _notes;
+
+    [ObservableProperty]
     private bool _isBreached;
 
     [ObservableProperty]
@@ -316,6 +319,7 @@ public partial class CredentialItemViewModel : ObservableObject
             Title = credential.Title,
             Username = credential.Username,
             Url = credential.Url,
+            Notes = credential.Notes,
             IsBreached = credential.IsBreached,
             UpdatedAt = credential.UpdatedAt
         };
