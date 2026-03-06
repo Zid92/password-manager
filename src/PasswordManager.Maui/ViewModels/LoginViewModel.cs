@@ -29,6 +29,12 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isBiometricAvailable;
 
+    [ObservableProperty]
+    private bool _isMasterPasswordHidden = true;
+
+    [ObservableProperty]
+    private bool _isConfirmPasswordHidden = true;
+
     public LoginViewModel(
         IDatabaseService databaseService,
         IEncryptionService encryptionService,
@@ -46,6 +52,12 @@ public partial class LoginViewModel : ViewModelBase
         IsFirstRun = await _databaseService.IsFirstRunAsync();
         IsBiometricAvailable = await _biometricService.IsAvailableAsync();
     }
+
+    [RelayCommand]
+    private void ToggleMasterPassword() => IsMasterPasswordHidden = !IsMasterPasswordHidden;
+
+    [RelayCommand]
+    private void ToggleConfirmPassword() => IsConfirmPasswordHidden = !IsConfirmPasswordHidden;
 
     [RelayCommand]
     private async Task UnlockAsync()

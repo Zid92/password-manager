@@ -56,6 +56,9 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private int _breachCheckProgress;
 
+    [ObservableProperty]
+    private bool _isDialogPasswordHidden = true;
+
     private int _editingCredentialId;
 
     public MainViewModel(
@@ -104,6 +107,9 @@ public partial class MainViewModel : ViewModelBase
         }
         HasCredentials = Credentials.Count > 0;
     }
+
+    [RelayCommand]
+    private void ToggleDialogPassword() => IsDialogPasswordHidden = !IsDialogPasswordHidden;
 
     [RelayCommand]
     private void AddCredential()
@@ -277,6 +283,7 @@ public partial class MainViewModel : ViewModelBase
         DialogPassword = string.Empty;
         DialogUrl = null;
         DialogNotes = null;
+        IsDialogPasswordHidden = true;
         ClearError();
     }
 }

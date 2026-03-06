@@ -31,26 +31,48 @@
                    TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}" />
 
             <!-- Master Password -->
-            <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}" 
-                   CornerRadius="8" 
-                   Padding="10"
+            <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}"
+                   CornerRadius="8"
+                   Padding="8,4"
                    HasShadow="False">
-                <Entry Placeholder="Master Password"
-                       Text="{Binding MasterPassword}"
-                       IsPassword="True"
-                       ReturnType="Next" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <Entry Placeholder="Master Password"
+                           Text="{Binding MasterPassword}"
+                           IsPassword="{Binding IsMasterPasswordHidden}"
+                           ReturnType="Next" />
+                    <Button Grid.Column="1"
+                            Text="{Binding IsMasterPasswordHidden, Converter={StaticResource BoolToStringConverter}, ConverterParameter='👁|🙈'}"
+                            Command="{Binding ToggleMasterPasswordCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"
+                            FontSize="18"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            Padding="0" />
+                </Grid>
             </Frame>
 
             <!-- Confirm Password (only for first run) -->
-            <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}" 
-                   CornerRadius="8" 
-                   Padding="10"
+            <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}"
+                   CornerRadius="8"
+                   Padding="8,4"
                    HasShadow="False"
                    IsVisible="{Binding IsFirstRun}">
-                <Entry Placeholder="Confirm Password"
-                       Text="{Binding ConfirmPassword}"
-                       IsPassword="True"
-                       ReturnType="Done" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <Entry Placeholder="Confirm Password"
+                           Text="{Binding ConfirmPassword}"
+                           IsPassword="{Binding IsConfirmPasswordHidden}"
+                           ReturnType="Done" />
+                    <Button Grid.Column="1"
+                            Text="{Binding IsConfirmPasswordHidden, Converter={StaticResource BoolToStringConverter}, ConverterParameter='👁|🙈'}"
+                            Command="{Binding ToggleConfirmPasswordCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"
+                            FontSize="18"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            Padding="0" />
+                </Grid>
             </Frame>
 
             <!-- Biometric toggle (only for first run) -->
