@@ -11,25 +11,16 @@ public partial class LoginPage : ContentPage
         InitializeComponent();
     }
 
-    public LoginPage(LoginViewModel viewModel) : this()
-    {
-        _viewModel = viewModel;
-        BindingContext = viewModel;
-    }
-
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        
-        if (_viewModel == null && Handler?.MauiContext?.Services != null)
+
+        if (_viewModel == null)
         {
-            _viewModel = Handler.MauiContext.Services.GetRequiredService<LoginViewModel>();
+            _viewModel = ServiceLocator.GetService<LoginViewModel>();
             BindingContext = _viewModel;
         }
-        
-        if (_viewModel != null)
-        {
-            await _viewModel.InitializeAsync();
-        }
+
+        await _viewModel.InitializeAsync();
     }
 }

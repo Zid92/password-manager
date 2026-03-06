@@ -11,25 +11,16 @@ public partial class MainPage : ContentPage
         InitializeComponent();
     }
 
-    public MainPage(MainViewModel viewModel) : this()
-    {
-        _viewModel = viewModel;
-        BindingContext = viewModel;
-    }
-
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        
-        if (_viewModel == null && Handler?.MauiContext?.Services != null)
+
+        if (_viewModel == null)
         {
-            _viewModel = Handler.MauiContext.Services.GetRequiredService<MainViewModel>();
+            _viewModel = ServiceLocator.GetService<MainViewModel>();
             BindingContext = _viewModel;
         }
-        
-        if (_viewModel != null)
-        {
-            await _viewModel.LoadCredentialsAsync();
-        }
+
+        await _viewModel.LoadCredentialsAsync();
     }
 }

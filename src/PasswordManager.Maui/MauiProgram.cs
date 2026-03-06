@@ -46,6 +46,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+
+        // Initialize ServiceLocator for pages using Shell DataTemplate (parameterless constructor)
+        ServiceLocator.Initialize(app.Services);
+
+        return app;
     }
 }

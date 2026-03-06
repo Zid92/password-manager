@@ -7,9 +7,9 @@ public partial class AppShell : Shell
     public AppShell()
     {
         InitializeComponent();
-        
-        Routing.RegisterRoute("login", typeof(LoginPage));
-        Routing.RegisterRoute("main", typeof(MainPage));
+
+        // "login" and "main" routes are declared in AppShell.xaml via ShellContent Route attribute
+        // Register only "settings" which is accessed via Shell.GoToAsync("settings")
         Routing.RegisterRoute("settings", typeof(SettingsPage));
     }
 }
