@@ -1,7 +1,7 @@
 using Moq;
-using PasswordManager.Data;
-using PasswordManager.Models;
-using PasswordManager.Services;
+using PasswordManager.Core.Data;
+using PasswordManager.Core.Models;
+using PasswordManager.Core.Services;
 
 namespace PasswordManager.Tests.Services;
 

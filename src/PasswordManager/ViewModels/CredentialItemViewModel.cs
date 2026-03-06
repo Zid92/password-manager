@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using PasswordManager.Models;
+using PasswordManager.Core.Models;
 
 namespace PasswordManager.ViewModels;
 

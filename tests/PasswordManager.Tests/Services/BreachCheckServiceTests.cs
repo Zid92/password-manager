@@ -1,11 +1,6 @@
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Moq;
-using Moq.Protected;
-using PasswordManager.Data;
-using PasswordManager.Models;
-using PasswordManager.Services;
+using PasswordManager.Core.Services;
 
 namespace PasswordManager.Tests.Services;
 

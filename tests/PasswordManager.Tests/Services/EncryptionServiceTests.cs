@@ -1,4 +1,4 @@
-using PasswordManager.Services;
+using PasswordManager.Core.Services;
 
 namespace PasswordManager.Tests.Services;
 

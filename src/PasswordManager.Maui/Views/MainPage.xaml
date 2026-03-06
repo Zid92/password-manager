@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:PasswordManager.Maui.ViewModels"
+             x:Class="PasswordManager.Maui.Views.MainPage"
+             x:DataType="viewmodels:MainViewModel"
+             Title="My Passwords"
+             BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Check" Command="{Binding CheckBreachesCommand}" IconImageSource="shield.png" />
+        <ToolbarItem Text="Settings" Command="{Binding OpenSettingsCommand}" IconImageSource="settings.png" />
+        <ToolbarItem Text="Logout" Command="{Binding LogoutCommand}" IconImageSource="logout.png" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Search bar -->
+        <SearchBar Grid.Row="0"
+                   Placeholder="Search credentials..."
+                   Text="{Binding SearchText}"
+                   Margin="10" />
+
+        <!-- Credentials list -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Credentials}"
+                        SelectedItem="{Binding SelectedCredential}"
+                        SelectionMode="Single"
+                        EmptyView="No credentials yet. Tap + to add one.">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewmodels:CredentialItemViewModel">
+                    <SwipeView>
+                        <SwipeView.LeftItems>
+                            <SwipeItems>
+                                <SwipeItem Text="Username"
+                                           BackgroundColor="{StaticResource Primary}"
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=CopyUsernameCommand}"
+                                           CommandParameter="{Binding .}" />
+                                <SwipeItem Text="Password"
+                                           BackgroundColor="{StaticResource Secondary}"
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=CopyPasswordCommand}"
+                                           CommandParameter="{Binding .}" />
+                            </SwipeItems>
+                        </SwipeView.LeftItems>
+                        <SwipeView.RightItems>
+                            <SwipeItems>
+                                <SwipeItem Text="Edit"
+                                           BackgroundColor="Orange"
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=EditCredentialCommand}"
+                                           CommandParameter="{Binding .}" />
+                                <SwipeItem Text="Delete"
+                                           BackgroundColor="Red"
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=DeleteCredentialCommand}"
+                                           CommandParameter="{Binding .}" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <Frame Margin="10,5" Padding="15" CornerRadius="10" HasShadow="True">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Title}"
+                                           FontSize="18"
+                                           FontAttributes="Bold" />
+                                    <Label Text="{Binding Username}"
+                                           FontSize="14"
+                                           TextColor="Gray" />
+                                    <Label Text="{Binding Url}"
+                                           FontSize="12"
+                                           TextColor="LightGray"
+                                           IsVisible="{Binding Url, Converter={StaticResource IsNotNullConverter}}" />
+                                </VerticalStackLayout>
+                                
+                                <!-- Breach indicator -->
+                                <Frame Grid.Column="1"
+                                       BackgroundColor="#FFE0E0"
+                                       CornerRadius="15"
+                                       Padding="8"
+                                       IsVisible="{Binding IsBreached}"
+                                       VerticalOptions="Center">
+                                    <Label Text="⚠️" FontSize="16" />
+                                </Frame>
+                            </Grid>
+                        </Frame>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Breach check progress -->
+        <Frame Grid.Row="2"
+               IsVisible="{Binding IsBreachCheckRunning}"
+               Margin="10"
+               Padding="10"
+               CornerRadius="8">
+            <VerticalStackLayout>
+                <Label Text="{Binding BreachCheckStatus}" HorizontalOptions="Center" />
+                <ProgressBar Progress="{Binding BreachCheckProgress, Converter={StaticResource IntToDoubleConverter}}" />
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Add button -->
+        <Button Grid.Row="2"
+                Text="+"
+                FontSize="24"
+                WidthRequest="60"
+                HeightRequest="60"
+                CornerRadius="30"
+                BackgroundColor="{StaticResource Primary}"
+                TextColor="White"
+                Command="{Binding AddCredentialCommand}"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="20"
+                IsVisible="{Binding IsBreachCheckRunning, Converter={StaticResource InverseBoolConverter}}" />
+
+        <!-- Loading overlay -->
+        <ActivityIndicator Grid.RowSpan="3"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="{StaticResource Primary}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+    </Grid>
+</ContentPage>

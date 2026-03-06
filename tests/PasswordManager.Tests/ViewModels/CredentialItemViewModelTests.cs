@@ -1,4 +1,4 @@
-using PasswordManager.Models;
+using PasswordManager.Core.Models;
 using PasswordManager.ViewModels;
 
 namespace PasswordManager.Tests.ViewModels;

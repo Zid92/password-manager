@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:PasswordManager.Maui.ViewModels"
+             x:Class="PasswordManager.Maui.Views.LoginPage"
+             x:DataType="viewmodels:LoginViewModel"
+             Title="Password Manager"
+             BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+            
+            <!-- App Icon -->
+            <Image Source="appicon.png" 
+                   HeightRequest="100" 
+                   WidthRequest="100"
+                   HorizontalOptions="Center" />
+            
+            <!-- Title -->
+            <Label Text="Password Manager" 
+                   FontSize="28" 
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
+
+            <!-- Subtitle based on mode -->
+            <Label Text="{Binding IsFirstRun, Converter={StaticResource BoolToStringConverter}, 
+                   ConverterParameter='Create your vault|Welcome back'}"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}" />
+
+            <!-- Master Password -->
+            <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}" 
+                   CornerRadius="8" 
+                   Padding="10"
+                   HasShadow="False">
+                <Entry Placeholder="Master Password"
+                       Text="{Binding MasterPassword}"
+                       IsPassword="True"
+                       ReturnType="Next" />
+            </Frame>
+
+            <!-- Confirm Password (only for first run) -->
+            <Frame BorderColor="{AppThemeBinding Light=LightGray, Dark=Gray}" 
+                   CornerRadius="8" 
+                   Padding="10"
+                   HasShadow="False"
+                   IsVisible="{Binding IsFirstRun}">
+                <Entry Placeholder="Confirm Password"
+                       Text="{Binding ConfirmPassword}"
+                       IsPassword="True"
+                       ReturnType="Done" />
+            </Frame>
+
+            <!-- Biometric toggle (only for first run) -->
+            <HorizontalStackLayout Spacing="10" 
+                                   IsVisible="{Binding IsFirstRun}"
+                                   HorizontalOptions="Center">
+                <Switch IsToggled="{Binding EnableBiometric}"
+                        IsEnabled="{Binding IsBiometricAvailable}" />
+                <Label Text="Enable biometric unlock"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Error message -->
+            <Frame BackgroundColor="#FFE0E0" 
+                   BorderColor="#FF6B6B"
+                   CornerRadius="8"
+                   Padding="10"
+                   IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#D32F2F"
+                       HorizontalOptions="Center" />
+            </Frame>
+
+            <!-- Unlock button -->
+            <Button Text="{Binding IsFirstRun, Converter={StaticResource BoolToStringConverter},
+                          ConverterParameter='Create Vault|Unlock'}"
+                    Command="{Binding UnlockCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+
+            <!-- Biometric unlock button -->
+            <Button Text="Unlock with Biometrics"
+                    Command="{Binding UnlockWithBiometricCommand}"
+                    BackgroundColor="{StaticResource Secondary}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    IsVisible="{Binding IsBiometricAvailable}"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+
+            <!-- Loading indicator -->
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}"
+                               Color="{StaticResource Primary}"
+                               HorizontalOptions="Center" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

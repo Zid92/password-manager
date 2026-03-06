@@ -1,7 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PasswordManager.Models;
+using PasswordManager.Core.Models;
+using PasswordManager.Core.Services;
 using PasswordManager.Native;
 using PasswordManager.Services;
 using Clipboard = System.Windows.Clipboard;

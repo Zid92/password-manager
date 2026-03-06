@@ -1,7 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PasswordManager.Data;
-using PasswordManager.Models;
+using PasswordManager.Core.Data;
+using PasswordManager.Core.Models;
+using PasswordManager.Core.Services;
 using PasswordManager.Services;
 
 namespace PasswordManager.ViewModels;

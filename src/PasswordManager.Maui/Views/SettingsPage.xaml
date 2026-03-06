@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:PasswordManager.Maui.ViewModels"
+             x:Class="PasswordManager.Maui.Views.SettingsPage"
+             x:DataType="viewmodels:SettingsViewModel"
+             Title="Settings"
+             BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            
+            <!-- Biometric Settings -->
+            <Frame CornerRadius="10" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Security" FontSize="18" FontAttributes="Bold" />
+                    
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout>
+                            <Label Text="Biometric Unlock" FontSize="16" />
+                            <Label Text="Use fingerprint or face to unlock"
+                                   FontSize="12"
+                                   TextColor="Gray" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding BiometricEnabled}"
+                                IsEnabled="{Binding IsBiometricAvailable}"
+                                VerticalOptions="Center" />
+                    </Grid>
+                    
+                    <Label Text="Biometric authentication is not available on this device"
+                           TextColor="Orange"
+                           FontSize="12"
+                           IsVisible="{Binding IsBiometricAvailable, Converter={StaticResource InverseBoolConverter}}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Error message -->
+            <Frame BackgroundColor="#FFE0E0" 
+                   BorderColor="#FF6B6B"
+                   CornerRadius="8"
+                   Padding="10"
+                   IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#D32F2F"
+                       HorizontalOptions="Center" />
+            </Frame>
+
+            <!-- Buttons -->
+            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                <Button Text="Cancel"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="Gray"
+                        TextColor="White"
+                        CornerRadius="8"
+                        WidthRequest="120" />
+                <Button Text="Save"
+                        Command="{Binding SaveCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        WidthRequest="120" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

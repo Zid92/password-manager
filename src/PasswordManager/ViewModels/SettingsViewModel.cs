@@ -2,8 +2,8 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
-using PasswordManager.Data;
-using PasswordManager.Models;
+using PasswordManager.Core.Data;
+using PasswordManager.Core.Models;
 
 namespace PasswordManager.ViewModels;
 

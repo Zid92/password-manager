@@ -1,40 +1,56 @@
 # Password Manager
 
-A secure password manager for Windows with global hotkey support and intelligent credential ranking.
+A secure, cross-platform password manager with global hotkey support and intelligent credential ranking.
 
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-purple)
 ![Windows](https://img.shields.io/badge/Platform-Windows-blue)
+![iOS](https://img.shields.io/badge/Platform-iOS-lightgray)
+![Android](https://img.shields.io/badge/Platform-Android-green)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
 
 - **Secure Storage** — Passwords encrypted with AES-256, database protected by SQLCipher
 - **Master Password** — Single password to access your vault
-- **Windows Hello** — Biometric authentication (fingerprint, facial recognition)
-- **Global Hotkeys** — Quick credential insertion into any application (default: `Ctrl+Alt+P`)
+- **Biometric Authentication** — Windows Hello, Face ID, Touch ID support
+- **Global Hotkeys** — Quick credential insertion into any application (Windows: `Ctrl+Alt+P`)
 - **Smart Ranking** — Remembers which credentials are used in which applications
 - **Breach Detection** — Integration with [Have I Been Pwned](https://haveibeenpwned.com/) to check for compromised passwords
-- **System Tray** — Runs in the background, minimizes to system tray
+- **System Tray** — Runs in the background, minimizes to system tray (Windows)
+- **Cross-Platform** — Native apps for Windows (WPF), iOS, and Android (MAUI)
 - **Material Design** — Modern and beautiful UI
 
 ## Requirements
 
+### Windows Desktop
 - Windows 10/11
 - .NET 10 Runtime
+
+### Mobile (iOS/Android)
+- iOS 15.0+
+- Android 5.0+ (API 21)
+- .NET MAUI workload
 
 ## Project Structure
 
 ```
 PasswordManager/
 ├── src/
-│   └── PasswordManager/          # Main application
-│       ├── Models/               # Data models
-│       ├── Services/             # Business logic services
-│       ├── ViewModels/           # MVVM ViewModels
-│       ├── Views/                # WPF Windows and controls
-│       ├── Converters/           # XAML value converters
-│       ├── Data/                 # Database service
-│       └── Native/               # Win32 API interop
+│   ├── PasswordManager.Core/     # Shared library (cross-platform)
+│   │   ├── Models/               # Data models
+│   │   ├── Services/             # Business logic services
+│   │   └── Data/                 # Database service
+│   ├── PasswordManager/          # WPF Desktop (Windows)
+│   │   ├── Services/             # Windows-specific services
+│   │   ├── ViewModels/           # WPF ViewModels
+│   │   ├── Views/                # WPF Windows
+│   │   ├── Converters/           # XAML converters
+│   │   └── Native/               # Win32 API interop
+│   └── PasswordManager.Maui/     # MAUI Mobile (iOS/Android)
+│       ├── Services/             # Platform services
+│       ├── ViewModels/           # MAUI ViewModels
+│       ├── Views/                # MAUI Pages
+│       └── Converters/           # MAUI converters
 ├── tests/
 │   └── PasswordManager.Tests/    # Unit tests (xUnit + Moq)
 └── PasswordManager.slnx          # Solution file
@@ -133,11 +149,13 @@ dotnet test --logger "console;verbosity=detailed"
 ## Technologies
 
 - [.NET 10](https://dotnet.microsoft.com/) — Platform
-- [WPF](https://docs.microsoft.com/en-us/dotnet/desktop/wpf/) — UI Framework
-- [MaterialDesignInXAML](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit) — Material Design styles
+- [WPF](https://docs.microsoft.com/en-us/dotnet/desktop/wpf/) — Windows Desktop UI
+- [.NET MAUI](https://docs.microsoft.com/en-us/dotnet/maui/) — Cross-platform mobile UI
+- [MaterialDesignInXAML](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit) — Material Design for WPF
+- [CommunityToolkit.Maui](https://github.com/CommunityToolkit/Maui) — MAUI extensions
 - [CommunityToolkit.Mvvm](https://docs.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/) — MVVM framework
 - [SQLite + SQLCipher](https://www.zetetic.net/sqlcipher/) — Encrypted database
-- [Hardcodet.NotifyIcon.Wpf](https://github.com/hardcodet/wpf-notifyicon) — System tray
+- [Hardcodet.NotifyIcon.Wpf](https://github.com/hardcodet/wpf-notifyicon) — System tray (Windows)
 - [Have I Been Pwned API](https://haveibeenpwned.com/API/v3) — Breach checking
 - [xUnit](https://xunit.net/) — Testing framework
 - [Moq](https://github.com/moq/moq4) — Mocking library for unit tests
