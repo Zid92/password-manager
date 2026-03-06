@@ -4,11 +4,15 @@ namespace PasswordManager.Maui.Views;
 
 public partial class LoginPage : ContentPage
 {
-    private readonly LoginViewModel _viewModel;
+    private LoginViewModel? _viewModel;
 
-    public LoginPage(LoginViewModel viewModel)
+    public LoginPage()
     {
         InitializeComponent();
+    }
+
+    public LoginPage(LoginViewModel viewModel) : this()
+    {
         _viewModel = viewModel;
         BindingContext = viewModel;
     }
@@ -16,6 +20,16 @@ public partial class LoginPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.InitializeAsync();
+        
+        if (_viewModel == null && Handler?.MauiContext?.Services != null)
+        {
+            _viewModel = Handler.MauiContext.Services.GetRequiredService<LoginViewModel>();
+            BindingContext = _viewModel;
+        }
+        
+        if (_viewModel != null)
+        {
+            await _viewModel.InitializeAsync();
+        }
     }
 }

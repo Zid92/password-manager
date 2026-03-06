@@ -1,5 +1,3 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
 namespace PasswordManager.Maui;
 
 public partial class App : Application

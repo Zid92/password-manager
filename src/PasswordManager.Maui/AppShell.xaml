@@ -9,12 +9,12 @@
 
     <ShellContent
         Title="Login"
-        ContentTemplate="{DataTemplate views:LoginPage}"
-        Route="login" />
+        Route="login"
+        ContentTemplate="{DataTemplate views:LoginPage}" />
 
     <ShellContent
         Title="Passwords"
-        ContentTemplate="{DataTemplate views:MainPage}"
-        Route="main" />
+        Route="main"
+        ContentTemplate="{DataTemplate views:MainPage}" />
 
 </Shell>

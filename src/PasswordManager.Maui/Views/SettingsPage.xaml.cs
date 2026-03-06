@@ -4,11 +4,15 @@ namespace PasswordManager.Maui.Views;
 
 public partial class SettingsPage : ContentPage
 {
-    private readonly SettingsViewModel _viewModel;
+    private SettingsViewModel? _viewModel;
 
-    public SettingsPage(SettingsViewModel viewModel)
+    public SettingsPage()
     {
         InitializeComponent();
+    }
+
+    public SettingsPage(SettingsViewModel viewModel) : this()
+    {
         _viewModel = viewModel;
         BindingContext = viewModel;
     }
@@ -16,6 +20,16 @@ public partial class SettingsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadSettingsAsync();
+        
+        if (_viewModel == null && Handler?.MauiContext?.Services != null)
+        {
+            _viewModel = Handler.MauiContext.Services.GetRequiredService<SettingsViewModel>();
+            BindingContext = _viewModel;
+        }
+        
+        if (_viewModel != null)
+        {
+            await _viewModel.LoadSettingsAsync();
+        }
     }
 }
