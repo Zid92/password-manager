@@ -1,11 +1,12 @@
 # Password Manager
 
-A secure, cross-platform password manager with global hotkey support and intelligent credential ranking.
+A secure, cross-platform password manager with biometric authentication and breach checking.
 
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-purple)
 ![Windows](https://img.shields.io/badge/Platform-Windows-blue)
-![iOS](https://img.shields.io/badge/Platform-iOS-lightgray)
 ![Android](https://img.shields.io/badge/Platform-Android-green)
+![iOS](https://img.shields.io/badge/Platform-iOS-lightgray)
+![macOS](https://img.shields.io/badge/Platform-macOS-lightgray)
 ![Build](https://img.shields.io/github/actions/workflow/status/Zid92/password-manager/ci.yml?branch=master)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -13,23 +14,35 @@ A secure, cross-platform password manager with global hotkey support and intelli
 
 - **Secure Storage** — Passwords encrypted with AES-256, database protected by SQLCipher
 - **Master Password** — Single password to access your vault
-- **Biometric Authentication** — Windows Hello, Face ID, Touch ID support
-- **Global Hotkeys** — Quick credential insertion into any application (Windows: `Ctrl+Alt+P`)
-- **Smart Ranking** — Remembers which credentials are used in which applications
+- **Biometric Authentication** — Windows Hello, Face ID, Touch ID, Fingerprint support
 - **Breach Detection** — Integration with [Have I Been Pwned](https://haveibeenpwned.com/) to check for compromised passwords
-- **System Tray** — Runs in the background, minimizes to system tray (Windows)
-- **Cross-Platform** — Native apps for Windows (WPF), iOS, and Android (MAUI)
-- **Material Design** — Modern and beautiful UI
+- **Cross-Platform** — Native apps for Windows, Android, iOS, macOS (MAUI)
+- **Global Hotkeys** — Quick credential insertion (Windows WPF only: `Ctrl+Alt+P`)
+- **System Tray** — Runs in background (Windows WPF only)
+- **Material Design** — Modern UI with light/dark theme support
+
+## Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| **Android** | ✅ Ready | Download APK from [GitHub Actions](../../actions) |
+| **Windows MAUI** | ✅ Ready | Download from [GitHub Actions](../../actions) |
+| **Windows WPF** | ✅ Ready | Local build only (global hotkeys, system tray) |
+| **iOS** | ⏳ Pending | Requires Xcode 26.2+ (not available on GitHub runners yet) |
+| **macOS** | ⏳ Pending | Requires Xcode 26.2+ (not available on GitHub runners yet) |
 
 ## Requirements
 
-### Windows Desktop
+### Android
+- Android 6.0+ (API 23)
+
+### Windows
 - Windows 10/11
 - .NET 10 Runtime
 
-### Mobile (iOS/Android)
+### iOS / macOS
 - iOS 15.0+
-- Android 6.0+ (API 23)
+- macOS 15.0+ (Mac Catalyst)
 - .NET MAUI workload
 
 ## Project Structure
@@ -40,18 +53,17 @@ PasswordManager/
 │   ├── PasswordManager.Core/     # Shared library (cross-platform)
 │   │   ├── Models/               # Data models
 │   │   ├── Services/             # Business logic services
-│   │   └── Data/                 # Database service
-│   ├── PasswordManager/          # WPF Desktop (Windows)
+│   │   └── Data/                 # Database service interface
+│   ├── PasswordManager/          # WPF Desktop (Windows only, local build)
 │   │   ├── Services/             # Windows-specific services
 │   │   ├── ViewModels/           # WPF ViewModels
 │   │   ├── Views/                # WPF Windows
-│   │   ├── Converters/           # XAML converters
 │   │   └── Native/               # Win32 API interop
-│   └── PasswordManager.Maui/     # MAUI Mobile (iOS/Android)
+│   └── PasswordManager.Maui/     # MAUI (Android, iOS, macOS, Windows)
 │       ├── Services/             # Platform services
 │       ├── ViewModels/           # MAUI ViewModels
 │       ├── Views/                # MAUI Pages
-│       └── Converters/           # MAUI converters
+│       └── Platforms/            # Platform-specific code
 ├── tests/
 │   └── PasswordManager.Tests/    # Unit tests (xUnit + Moq)
 └── PasswordManager.slnx          # Solution file
@@ -59,34 +71,80 @@ PasswordManager/
 
 ## Installation
 
-### From Source
+### Download Pre-built Apps
+
+1. Go to [GitHub Actions](../../actions)
+2. Select the latest successful workflow run
+3. Download artifacts:
+   - `android-apk-debug` — Android APK
+   - `windows-maui-debug` — Windows MAUI app
+
+### Build from Source
 
 ```bash
-git clone https://github.com/yourusername/password-manager.git
+git clone https://github.com/Zid92/password-manager.git
 cd password-manager
-dotnet build
-dotnet run --project src/PasswordManager
+
+# Build Android APK
+dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-android -c Debug -p:EmbedAssembliesIntoApk=true
+
+# Build Windows MAUI
+dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-windows10.0.19041.0 -c Debug
+
+# Build Windows WPF (local only)
+dotnet publish src/PasswordManager/PasswordManager.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+
+# Build iOS (requires Mac with Xcode 26.2+)
+dotnet build src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-ios -c Debug
+
+# Build macOS (requires Mac with Xcode 26.2+)
+dotnet build src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-maccatalyst -c Debug
 ```
 
-### Build Release
+## Usage
 
-```bash
-dotnet publish src/PasswordManager -c Release -r win-x64 --self-contained
-```
+### First Launch
+
+1. Launch the application
+2. Create a master password (minimum 8 characters)
+3. Optionally enable biometric unlock (fingerprint / Face ID / Windows Hello)
+
+### Adding a Password
+
+1. Tap the `+` button
+2. Fill in the fields:
+   - **Title** — Name for this entry (required)
+   - **Username** — Login/email
+   - **Password** — The password (required)
+   - **URL** — Website address (optional)
+   - **Notes** — Additional info (optional)
+3. Tap **Save**
+
+### Managing Passwords
+
+Each password card shows:
+- Title, Username, URL, Notes
+- Breach warning if compromised
+
+Action buttons on each card:
+- **Copy user** — Copy username to clipboard
+- **Copy pass** — Copy password to clipboard
+- **Edit** — Modify entry
+- **Delete** — Remove entry
+
+### Checking for Breaches
+
+1. Tap **Check** in the toolbar
+2. Wait for the check to complete
+3. Compromised passwords will show a warning badge
 
 ## Testing
 
-The project includes comprehensive unit tests using xUnit and Moq.
-
-### Run All Tests
-
 ```bash
+# Run all tests
 dotnet test
-```
 
-### Run Tests with Detailed Output
-
-```bash
+# Run with detailed output
 dotnet test --logger "console;verbosity=detailed"
 ```
 
@@ -103,94 +161,34 @@ dotnet test --logger "console;verbosity=detailed"
 | Converters | 36 |
 | **Total** | **135** |
 
-### Test Structure
-
-- `tests/PasswordManager.Tests/Services/` — Service layer tests with mocked dependencies
-- `tests/PasswordManager.Tests/Models/` — Model property and behavior tests
-- `tests/PasswordManager.Tests/ViewModels/` — ViewModel mapping and PropertyChanged tests
-- `tests/PasswordManager.Tests/Converters/` — XAML converter tests
-
-## Usage
-
-### First Launch
-
-1. Launch the application
-2. Create a master password (minimum 8 characters)
-3. Optionally enable Windows Hello for quick unlock
-
-### Adding a Password
-
-1. Click the `+` button in the bottom right corner
-2. Fill in the fields (title, username, password, URL)
-3. Click "Save"
-
-### Quick Insert
-
-1. Open the application where you need to enter credentials
-2. Press `Ctrl+Alt+P` (or your configured hotkey)
-3. Select the desired entry from the list
-4. Press `Enter` to insert username and password
-   - `Ctrl+U` — username only
-   - `Ctrl+P` — password only
-
-### Checking Passwords for Breaches
-
-1. In the main window, click the shield icon
-2. Wait for the check to complete
-3. Compromised passwords will be marked with a red badge
-
 ## Security
 
-- Passwords are stored in an encrypted SQLite database (SQLCipher)
-- AES-256 is used for password encryption
-- Master key is derived from the master password using PBKDF2 (100,000 iterations)
-- When using Windows Hello, the key is protected by DPAPI and stored in Windows Credential Manager
-- Breach checking uses k-anonymity (only the first 5 characters of the hash are sent to the server)
+- Passwords stored in encrypted SQLite database (SQLCipher)
+- AES-256 encryption for individual passwords
+- Master key derived using PBKDF2 (100,000 iterations)
+- Biometric keys protected by platform secure storage
+- Breach checking uses k-anonymity (only first 5 hash characters sent)
 
 ## CI/CD
 
-The project uses GitHub Actions for continuous integration and deployment.
-
-### Workflows
-
-| Workflow | Trigger | Description |
-|----------|---------|-------------|
-| **Build and Test** | Push/PR to master | Builds Core, WPF projects and runs all tests |
-| **Build Android** | Push to master (MAUI changes) | Builds debug APK for testing |
-| **Build iOS** | Push to master (MAUI changes) | Builds iOS simulator build |
-| **Create Release** | Tag `v*` | Creates release with Windows and Android builds |
-
-### Manual Testing
-
-Download artifacts from workflow runs:
-1. Go to [Actions](../../actions)
-2. Select a workflow run
-3. Download artifacts (APK, Windows build)
-
-### Release Process
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-This triggers the release workflow and creates a GitHub release with:
-- Windows WPF self-contained executable
-- Android APK
+| Workflow | Trigger | Artifacts |
+|----------|---------|-----------|
+| **Build and Test** | Push/PR to master | Test results |
+| **Build Android APK** | Push to master | `android-apk-debug` |
+| **Build Windows** | Push to master | `windows-maui-debug` |
+| **Build iOS & macOS** | Manual only | Disabled until Xcode 26.2 available |
 
 ## Technologies
 
 - [.NET 10](https://dotnet.microsoft.com/) — Platform
-- [WPF](https://docs.microsoft.com/en-us/dotnet/desktop/wpf/) — Windows Desktop UI
-- [.NET MAUI](https://docs.microsoft.com/en-us/dotnet/maui/) — Cross-platform mobile UI
-- [MaterialDesignInXAML](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit) — Material Design for WPF
-- [CommunityToolkit.Maui](https://github.com/CommunityToolkit/Maui) — MAUI extensions
+- [.NET MAUI](https://docs.microsoft.com/en-us/dotnet/maui/) — Cross-platform UI (Android, iOS, macOS, Windows)
+- [WPF](https://docs.microsoft.com/en-us/dotnet/desktop/wpf/) — Windows Desktop UI (local build)
 - [CommunityToolkit.Mvvm](https://docs.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/) — MVVM framework
+- [CommunityToolkit.Maui](https://github.com/CommunityToolkit/Maui) — MAUI extensions
 - [SQLite + SQLCipher](https://www.zetetic.net/sqlcipher/) — Encrypted database
-- [Hardcodet.NotifyIcon.Wpf](https://github.com/hardcodet/wpf-notifyicon) — System tray (Windows)
+- [Plugin.Fingerprint](https://github.com/smstuebe/xamarin-fingerprint) — Cross-platform biometric auth
 - [Have I Been Pwned API](https://haveibeenpwned.com/API/v3) — Breach checking
-- [xUnit](https://xunit.net/) — Testing framework
-- [Moq](https://github.com/moq/moq4) — Mocking library for unit tests
+- [xUnit](https://xunit.net/) + [Moq](https://github.com/moq/moq4) — Testing
 
 ## License
 
