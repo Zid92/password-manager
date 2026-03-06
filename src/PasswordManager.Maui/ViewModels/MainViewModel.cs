@@ -137,7 +137,7 @@ public partial class MainViewModel : ViewModelBase
     {
         if (item == null) return;
 
-        bool confirmed = await Shell.Current.DisplayAlert(
+        bool confirmed = await Shell.Current.CurrentPage.DisplayAlert(
             "Confirm deletion",
             $"Delete entry \"{item.Title}\"?",
             "Yes", "No");
@@ -195,7 +195,7 @@ public partial class MainViewModel : ViewModelBase
         if (item == null) return;
 
         await Clipboard.Default.SetTextAsync(item.Username);
-        await Shell.Current.DisplayAlert("Copied", "Username copied to clipboard", "OK");
+        await Shell.Current.CurrentPage.DisplayAlert("Copied", "Username copied to clipboard", "OK");
     }
 
     [RelayCommand]
@@ -208,7 +208,7 @@ public partial class MainViewModel : ViewModelBase
 
         var password = _credentialService.DecryptPassword(credential);
         await Clipboard.Default.SetTextAsync(password);
-        await Shell.Current.DisplayAlert("Copied", "Password copied to clipboard", "OK");
+        await Shell.Current.CurrentPage.DisplayAlert("Copied", "Password copied to clipboard", "OK");
     }
 
     [RelayCommand]
@@ -235,14 +235,14 @@ public partial class MainViewModel : ViewModelBase
             var breachedCount = Credentials.Count(c => c.IsBreached);
             if (breachedCount > 0)
             {
-                await Shell.Current.DisplayAlert(
+                await Shell.Current.CurrentPage.DisplayAlert(
                     "Check completed",
                     $"Found {breachedCount} compromised password(s)! It is recommended to change them.",
                     "OK");
             }
             else
             {
-                await Shell.Current.DisplayAlert(
+                await Shell.Current.CurrentPage.DisplayAlert(
                     "Check completed",
                     "All passwords are safe!",
                     "OK");
