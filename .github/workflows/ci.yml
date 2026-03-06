@@ -10,7 +10,7 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,6 +19,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-ci-${{ hashFiles('src/PasswordManager.Core/**/*.csproj', 'src/PasswordManager/**/*.csproj', 'tests/**/*.csproj') }}
+          restore-keys: |
+            nuget-ci-
+            nuget-
 
       - name: Restore Core library
         run: dotnet restore src/PasswordManager.Core/PasswordManager.Core.csproj

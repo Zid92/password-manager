@@ -23,7 +23,28 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-windows-${{ hashFiles('src/PasswordManager.Maui/**/*.csproj', 'src/PasswordManager.Core/**/*.csproj') }}
+          restore-keys: |
+            nuget-windows-
+            nuget-
+
+      - name: Cache MAUI workload
+        id: cache-maui
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\Program Files\dotnet\sdk-manifests
+            C:\Program Files\dotnet\packs
+          key: maui-workload-${{ runner.os }}-${{ hashFiles('src/PasswordManager.Maui/PasswordManager.Maui.csproj') }}
+          restore-keys: |
+            maui-workload-${{ runner.os }}-
+
       - name: Install MAUI workload
+        if: steps.cache-maui.outputs.cache-hit != 'true'
         run: dotnet workload install maui
 
       - name: Restore dependencies
@@ -53,6 +74,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-wpf-${{ hashFiles('src/PasswordManager/**/*.csproj', 'src/PasswordManager.Core/**/*.csproj') }}
+          restore-keys: |
+            nuget-wpf-
+            nuget-
 
       - name: Restore dependencies
         run: dotnet restore src/PasswordManager/PasswordManager.csproj
