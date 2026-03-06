@@ -6,7 +6,6 @@ on:
     paths:
       - 'src/PasswordManager.Core/**'
       - 'src/PasswordManager.Maui/**'
-      - 'src/PasswordManager/**'
       - '.github/workflows/windows.yml'
   workflow_dispatch:
 
@@ -63,41 +62,5 @@ jobs:
           name: windows-maui-debug
           path: ./artifacts/windows-maui/
 
-  build-windows-wpf:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-wpf-${{ hashFiles('src/PasswordManager/**/*.csproj', 'src/PasswordManager.Core/**/*.csproj') }}
-          restore-keys: |
-            nuget-wpf-
-            nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore src/PasswordManager/PasswordManager.csproj
-
-      - name: Publish WPF (self-contained exe)
-        run: |
-          dotnet publish src/PasswordManager/PasswordManager.csproj `
-            -c Release `
-            -r win-x64 `
-            --self-contained true `
-            -p:PublishSingleFile=true `
-            -o ./artifacts/wpf
-
-      - name: Upload WPF Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-wpf-exe
-          path: ./artifacts/wpf/*.exe
+  # WPF build disabled - available for local builds only
+  # To build locally: dotnet publish src/PasswordManager/PasswordManager.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
