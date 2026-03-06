@@ -1,23 +1,16 @@
-name: Build iOS IPA
+name: Build iOS & macOS
 
-# NOTE: iOS build is currently disabled because .NET 10 requires Xcode 26.2,
-# but GitHub-hosted runners only have Xcode 16.2 available.
-# This workflow will be enabled once GitHub updates their macOS runners.
+# NOTE: iOS/macOS builds require Xcode 26.2+ for .NET 10.
+# GitHub-hosted runners currently have Xcode 16.2.
+# Triggered manually until GitHub updates their macOS runners.
 
 on:
-  # Temporarily disabled - uncomment when Xcode 26.2 is available on GitHub runners
-  # push:
-  #   branches: [master, main]
-  #   paths:
-  #     - 'src/PasswordManager.Core/**'
-  #     - 'src/PasswordManager.Maui/**'
-  #     - '.github/workflows/ios.yml'
   workflow_dispatch:
 
 jobs:
   build-ios:
     runs-on: macos-15
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,8 +20,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: List available Xcode versions
-        run: ls -la /Applications | grep Xcode
+      - name: Show available Xcode versions
+        run: ls /Applications | grep Xcode
 
       - name: Install MAUI workload
         run: dotnet workload install maui
@@ -36,7 +29,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore src/PasswordManager.Maui/PasswordManager.Maui.csproj
 
-      - name: Build iOS (Simulator)
+      - name: Build iOS Simulator (Debug)
         run: |
           dotnet build src/PasswordManager.Maui/PasswordManager.Maui.csproj \
             -f net10.0-ios \
@@ -44,17 +37,49 @@ jobs:
             -p:RuntimeIdentifier=iossimulator-arm64
         continue-on-error: true
 
-      - name: Upload iOS Build
+      - name: Upload iOS Simulator Build
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: ios-simulator-build
+          name: ios-simulator-debug
           path: src/PasswordManager.Maui/bin/Debug/net10.0-ios/iossimulator-arm64/
+
+  build-macos:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Restore dependencies
+        run: dotnet restore src/PasswordManager.Maui/PasswordManager.Maui.csproj
+
+      - name: Build macOS (Mac Catalyst, Debug)
+        run: |
+          dotnet build src/PasswordManager.Maui/PasswordManager.Maui.csproj \
+            -f net10.0-maccatalyst \
+            -c Debug
+        continue-on-error: true
+
+      - name: Upload macOS Build
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: macos-maccatalyst-debug
+          path: src/PasswordManager.Maui/bin/Debug/net10.0-maccatalyst/
 
   build-ios-release:
     runs-on: macos-15
     if: github.event_name == 'workflow_dispatch'
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,18 +99,13 @@ jobs:
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
-          # Create keychain
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
-          
-          # Import certificate
           echo $APPLE_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
           security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
-          
-          # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo $APPLE_PROVISIONING_PROFILE_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 

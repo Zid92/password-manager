@@ -1,0 +1,73 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'src/PasswordManager.Core/**'
+      - 'src/PasswordManager.Maui/**'
+      - 'src/PasswordManager/**'
+      - '.github/workflows/windows.yml'
+  workflow_dispatch:
+
+jobs:
+  build-windows-maui:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Restore dependencies
+        run: dotnet restore src/PasswordManager.Maui/PasswordManager.Maui.csproj
+
+      - name: Build Windows MAUI (Debug)
+        run: |
+          dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj `
+            -f net10.0-windows10.0.19041.0 `
+            -c Debug `
+            -o ./artifacts/windows-maui
+
+      - name: Upload Windows MAUI Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-maui-debug
+          path: ./artifacts/windows-maui/
+
+  build-windows-wpf:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/PasswordManager/PasswordManager.csproj
+
+      - name: Publish WPF (self-contained exe)
+        run: |
+          dotnet publish src/PasswordManager/PasswordManager.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -o ./artifacts/wpf
+
+      - name: Upload WPF Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-wpf-exe
+          path: ./artifacts/wpf/*.exe
