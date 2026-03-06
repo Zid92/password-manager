@@ -62,6 +62,12 @@ public class MauiBiometricService : IBiometricService
                     }
 
                     var executor = AndroidX.Core.Content.ContextCompat.GetMainExecutor(activity);
+                    if (executor == null)
+                    {
+                        tcs.TrySetResult(false);
+                        return;
+                    }
+                    
                     var callback = new BiometricCallback(tcs);
 
                     var biometricPrompt = new AndroidX.Biometric.BiometricPrompt(

@@ -29,7 +29,7 @@ A secure, cross-platform password manager with global hotkey support and intelli
 
 ### Mobile (iOS/Android)
 - iOS 15.0+
-- Android 5.0+ (API 21)
+- Android 6.0+ (API 23)
 - .NET MAUI workload
 
 ## Project Structure
