@@ -22,6 +22,24 @@ A secure password manager for Windows with global hotkey support and intelligent
 - Windows 10/11
 - .NET 10 Runtime
 
+## Project Structure
+
+```
+PasswordManager/
+├── src/
+│   └── PasswordManager/          # Main application
+│       ├── Models/               # Data models
+│       ├── Services/             # Business logic services
+│       ├── ViewModels/           # MVVM ViewModels
+│       ├── Views/                # WPF Windows and controls
+│       ├── Converters/           # XAML value converters
+│       ├── Data/                 # Database service
+│       └── Native/               # Win32 API interop
+├── tests/
+│   └── PasswordManager.Tests/    # Unit tests (xUnit + Moq)
+└── PasswordManager.slnx          # Solution file
+```
+
 ## Installation
 
 ### From Source
@@ -38,6 +56,42 @@ dotnet run --project src/PasswordManager
 ```bash
 dotnet publish src/PasswordManager -c Release -r win-x64 --self-contained
 ```
+
+## Testing
+
+The project includes comprehensive unit tests using xUnit and Moq.
+
+### Run All Tests
+
+```bash
+dotnet test
+```
+
+### Run Tests with Detailed Output
+
+```bash
+dotnet test --logger "console;verbosity=detailed"
+```
+
+### Test Coverage
+
+| Category | Tests |
+|----------|-------|
+| EncryptionService | 19 |
+| CredentialService | 13 |
+| RankingService | 13 |
+| BreachCheckService | 10 |
+| Models | 19 |
+| ViewModels | 11 |
+| Converters | 36 |
+| **Total** | **135** |
+
+### Test Structure
+
+- `tests/PasswordManager.Tests/Services/` — Service layer tests with mocked dependencies
+- `tests/PasswordManager.Tests/Models/` — Model property and behavior tests
+- `tests/PasswordManager.Tests/ViewModels/` — ViewModel mapping and PropertyChanged tests
+- `tests/PasswordManager.Tests/Converters/` — XAML converter tests
 
 ## Usage
 
@@ -85,6 +139,8 @@ dotnet publish src/PasswordManager -c Release -r win-x64 --self-contained
 - [SQLite + SQLCipher](https://www.zetetic.net/sqlcipher/) — Encrypted database
 - [Hardcodet.NotifyIcon.Wpf](https://github.com/hardcodet/wpf-notifyicon) — System tray
 - [Have I Been Pwned API](https://haveibeenpwned.com/API/v3) — Breach checking
+- [xUnit](https://xunit.net/) — Testing framework
+- [Moq](https://github.com/moq/moq4) — Mocking library for unit tests
 
 ## License
 

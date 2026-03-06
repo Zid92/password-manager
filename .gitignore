@@ -61,6 +61,11 @@ Desktop.ini
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 TestResult.xml
+coverage/
+*.coverage
+*.coveragexml
+coverage.json
+coverage.cobertura.xml
 
 # Sensitive files
 *.env
