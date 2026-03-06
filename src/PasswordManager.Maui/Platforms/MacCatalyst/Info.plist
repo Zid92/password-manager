@@ -36,5 +36,7 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Password Manager uses Touch ID or Face ID to securely unlock your vault</string>
 </dict>
 </plist>
