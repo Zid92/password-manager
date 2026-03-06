@@ -75,7 +75,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Install MAUI workload
-        run: dotnet workload install maui-android
+        run: dotnet workload install maui
 
       - name: Restore dependencies
         run: dotnet restore src/PasswordManager.Maui/PasswordManager.Maui.csproj

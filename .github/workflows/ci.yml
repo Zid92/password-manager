@@ -19,14 +19,23 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore Core library
+        run: dotnet restore src/PasswordManager.Core/PasswordManager.Core.csproj
+
+      - name: Restore WPF application
+        run: dotnet restore src/PasswordManager/PasswordManager.csproj
+
+      - name: Restore Tests
+        run: dotnet restore tests/PasswordManager.Tests/PasswordManager.Tests.csproj
 
       - name: Build Core library
         run: dotnet build src/PasswordManager.Core/PasswordManager.Core.csproj --no-restore
 
       - name: Build WPF application
         run: dotnet build src/PasswordManager/PasswordManager.csproj --no-restore
+
+      - name: Build Tests
+        run: dotnet build tests/PasswordManager.Tests/PasswordManager.Tests.csproj --no-restore
 
       - name: Run tests
         run: dotnet test tests/PasswordManager.Tests/PasswordManager.Tests.csproj --no-build --logger trx --results-directory TestResults
