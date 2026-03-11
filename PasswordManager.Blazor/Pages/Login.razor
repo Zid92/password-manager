@@ -1,0 +1,65 @@
+@page "/login"
+@inject PasswordManager.Blazor.Services.ApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>Unlock Vault</PageTitle>
+
+<h1>Unlock Vault</h1>
+
+<EditForm Model="@this" OnValidSubmit="HandleLoginAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="masterPassword" class="form-label">Master password</label>
+        <InputText @bind-Value="MasterPassword" id="masterPassword" type="password" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@IsBusy">
+        @if (IsBusy)
+        {
+            <span>Unlocking...</span>
+        }
+        else
+        {
+            <span>Unlock</span>
+        }
+    </button>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="text-danger mt-2">@Error</div>
+    }
+</EditForm>
+
+@code {
+    public string MasterPassword { get; set; } = string.Empty;
+    public bool IsBusy { get; set; }
+    public string? Error { get; set; }
+
+    private async Task HandleLoginAsync()
+    {
+        Error = null;
+        IsBusy = true;
+        try
+        {
+            var success = await ApiClient.OpenVaultAsync(MasterPassword);
+            if (!success)
+            {
+                Error = "Failed to unlock vault.";
+                return;
+            }
+
+            Navigation.NavigateTo("/vault");
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}
+

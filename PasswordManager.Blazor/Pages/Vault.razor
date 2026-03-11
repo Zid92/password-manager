@@ -1,0 +1,161 @@
+@page "/vault"
+@inject PasswordManager.Blazor.Services.ApiClient ApiClient
+
+<PageTitle>Vault</PageTitle>
+
+<h1>Your passwords</h1>
+
+<div class="mb-3">
+    <input class="form-control" placeholder="Search..." @bind="SearchQuery" @bind:after="OnSearchChanged" />
+</div>
+
+<button class="btn btn-sm btn-success mb-3" @onclick="NewCredential">New credential</button>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Username</th>
+        <th>Url</th>
+        <th>Updated</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Credentials)
+    {
+        <tr>
+            <td>@c.Title</td>
+            <td>@c.Username</td>
+            <td>@c.Url</td>
+            <td>@c.UpdatedAt.ToLocalTime()</td>
+            <td>
+                <button class="btn btn-sm btn-primary me-1" @onclick="() => EditCredential(c.Id)">Edit</button>
+                <button class="btn btn-sm btn-danger" @onclick="() => DeleteCredential(c.Id)">Delete</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<EditForm Model="@EditModel" OnValidSubmit="SaveAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <InputText class="form-control" @bind-Value="EditModel.Title" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <InputText class="form-control" @bind-Value="EditModel.Username" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <InputText class="form-control" type="password" @bind-Value="EditModel.PlainPassword" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Url</label>
+                <InputText class="form-control" @bind-Value="EditModel.Url" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <InputText class="form-control" @bind-Value="EditModel.Category" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Notes</label>
+                <InputTextArea class="form-control" @bind-Value="EditModel.Notes" />
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@IsSaving">Save</button>
+</EditForm>
+
+@code {
+    private List<PasswordManager.Core.Models.Credential> Credentials { get; set; } = new();
+    private string SearchQuery { get; set; } = string.Empty;
+    private bool IsSaving { get; set; }
+    private int? EditingId { get; set; }
+    private PasswordManager.Contracts.SaveCredentialRequest EditModel { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        Credentials = (await ApiClient.GetCredentialsAsync()).ToList();
+    }
+
+    private async Task OnSearchChanged()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            await LoadAsync();
+        }
+        else
+        {
+            Credentials = (await ApiClient.SearchCredentialsAsync(SearchQuery)).ToList();
+        }
+    }
+
+    private void NewCredential()
+    {
+        EditingId = null;
+        EditModel = new PasswordManager.Contracts.SaveCredentialRequest();
+    }
+
+    private async Task EditCredential(int id)
+    {
+        var credential = await ApiClient.GetCredentialAsync(id);
+        if (credential is null)
+        {
+            return;
+        }
+
+        EditingId = id;
+        EditModel = new PasswordManager.Contracts.SaveCredentialRequest
+        {
+            Title = credential.Title,
+            Username = credential.Username,
+            Url = credential.Url,
+            Notes = credential.Notes,
+            Category = credential.Category
+        };
+    }
+
+    private async Task DeleteCredential(int id)
+    {
+        await ApiClient.DeleteCredentialAsync(id);
+        await LoadAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        IsSaving = true;
+        try
+        {
+            if (EditingId is null)
+            {
+                await ApiClient.CreateCredentialAsync(EditModel);
+            }
+            else
+            {
+                await ApiClient.UpdateCredentialAsync(EditingId.Value, EditModel);
+            }
+
+            await LoadAsync();
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+}
+

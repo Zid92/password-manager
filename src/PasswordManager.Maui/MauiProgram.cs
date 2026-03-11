@@ -32,6 +32,16 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISecureStorageService, MauiSecureStorageService>();
         builder.Services.AddSingleton<IMauiNavigationService, MauiNavigationService>();
 
+        // Remote API client (for future integration with central server)
+        builder.Services.AddSingleton(sp =>
+        {
+            var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri("https://localhost:5001")
+            };
+            return new ApiClient(httpClient);
+        });
+
         // Register ViewModels
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<MainViewModel>();

@@ -50,23 +50,15 @@ A secure, cross-platform password manager with biometric authentication and brea
 ```
 PasswordManager/
 ├── src/
-│   ├── PasswordManager.Core/     # Shared library (cross-platform)
-│   │   ├── Models/               # Data models
-│   │   ├── Services/             # Business logic services
-│   │   └── Data/                 # Database service interface
-│   ├── PasswordManager/          # WPF Desktop (Windows only, local build)
-│   │   ├── Services/             # Windows-specific services
-│   │   ├── ViewModels/           # WPF ViewModels
-│   │   ├── Views/                # WPF Windows
-│   │   └── Native/               # Win32 API interop
-│   └── PasswordManager.Maui/     # MAUI (Android, iOS, macOS, Windows)
-│       ├── Services/             # Platform services
-│       ├── ViewModels/           # MAUI ViewModels
-│       ├── Views/                # MAUI Pages
-│       └── Platforms/            # Platform-specific code
+│   ├── PasswordManager.Core/      # Shared library (models, services, data access)
+│   ├── PasswordManager/           # WPF desktop (Windows only, local build)
+│   ├── PasswordManager.Maui/      # MAUI (Android, iOS, macOS, Windows)
+│   └── PasswordManager.Api/       # ASP.NET Core HTTP API (central vault server)
+├── PasswordManager.Blazor/        # Blazor WebAssembly frontend (web vault UI)
+├── PasswordManager.Contracts/     # Shared DTOs for HTTP API
 ├── tests/
-│   └── PasswordManager.Tests/    # Unit tests (xUnit + Moq)
-└── PasswordManager.slnx          # Solution file
+│   └── PasswordManager.Tests/     # Unit tests (xUnit + Moq)
+└── PasswordManager.slnx           # Solution file
 ```
 
 ## Installation
@@ -91,7 +83,7 @@ dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-a
 # Build Windows MAUI
 dotnet publish src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-windows10.0.19041.0 -c Debug
 
-# Build Windows WPF (local only)
+# Build Windows WPF (local only, desktop app)
 dotnet publish src/PasswordManager/PasswordManager.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 
 # Build iOS (requires Mac with Xcode 26.2+)
@@ -99,7 +91,16 @@ dotnet build src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-ios
 
 # Build macOS (requires Mac with Xcode 26.2+)
 dotnet build src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-maccatalyst -c Debug
+
+# Build and run central HTTP API (backend)
+dotnet run --project PasswordManager.Api
+
+# Build and run Blazor Web frontend
+dotnet run --project PasswordManager.Blazor
 ```
+
+The Blazor frontend uses the same HTTP API as MAUI and WPF clients.  
+Configure the API base URL for the web app in `PasswordManager.Blazor/wwwroot/appsettings.json` (`ApiBaseUrl`).
 
 ## Usage
 
@@ -148,18 +149,14 @@ dotnet test
 dotnet test --logger "console;verbosity=detailed"
 ```
 
-### Test Coverage
+### Test Coverage (summary)
 
-| Category | Tests |
-|----------|-------|
-| EncryptionService | 19 |
-| CredentialService | 13 |
-| RankingService | 13 |
-| BreachCheckService | 10 |
-| Models | 19 |
-| ViewModels | 11 |
-| Converters | 36 |
-| **Total** | **135** |
+The solution includes comprehensive unit tests for:
+
+- **Core services**: encryption, credentials, ranking, breach-check logic
+- **Models**: credential and usage history behaviour
+- **UI helpers**: WPF/MVVM converters and view-models
+- **HTTP layer**: API contracts and `ApiClient` behaviour (request routing and response parsing)
 
 ## Security
 

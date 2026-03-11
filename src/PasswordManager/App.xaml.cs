@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Windows;
 using Application = System.Windows.Application;
 using System.Windows.Input;
@@ -57,6 +58,16 @@ public partial class App : Application
         services.AddSingleton<IActiveWindowService, ActiveWindowService>();
         services.AddSingleton<IRankingService, RankingService>();
         services.AddSingleton<IBreachCheckService, BreachCheckService>();
+
+        // Remote API client (for future integration with central server)
+        services.AddSingleton(sp =>
+        {
+            var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri("https://localhost:5001")
+            };
+            return new ApiClient(httpClient);
+        });
 
         // ViewModels
         services.AddTransient<MainViewModel>();
