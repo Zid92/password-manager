@@ -1,5 +1,6 @@
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using PasswordManager.ApiClient;
 using PasswordManager.Core.Data;
 using PasswordManager.Core.Services;
 using PasswordManager.Maui.Services;
@@ -10,6 +11,8 @@ namespace PasswordManager.Maui;
 
 public static class MauiProgram
 {
+    private const string ApiBaseUrl = "https://localhost:5001";
+
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -22,25 +25,18 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Register services
-        builder.Services.AddSingleton<IDatabaseService, MauiDatabaseService>();
-        builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
-        builder.Services.AddSingleton<ICredentialService, CredentialService>();
+        // All clients use the central API; no local vault.
+        builder.Services.AddSingleton<IUseRemoteApi>(new UseRemoteApiFlag(useRemoteApi: true));
+        builder.Services.AddSingleton<HttpClient>(_ => new HttpClient { BaseAddress = new Uri(ApiBaseUrl) });
+        builder.Services.AddSingleton<IDatabaseService, ApiBackedDatabaseService>();
+        builder.Services.AddSingleton<IEncryptionService, RemoteStubEncryptionService>();
+        builder.Services.AddSingleton<ICredentialService, ApiBackedCredentialService>();
+
         builder.Services.AddSingleton<IBreachCheckService, BreachCheckService>();
         builder.Services.AddSingleton<IRankingService, RankingService>();
         builder.Services.AddSingleton<IBiometricService, MauiBiometricService>();
         builder.Services.AddSingleton<ISecureStorageService, MauiSecureStorageService>();
         builder.Services.AddSingleton<IMauiNavigationService, MauiNavigationService>();
-
-        // Remote API client (for future integration with central server)
-        builder.Services.AddSingleton(sp =>
-        {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri("https://localhost:5001")
-            };
-            return new ApiClient(httpClient);
-        });
 
         // Register ViewModels
         builder.Services.AddTransient<LoginViewModel>();

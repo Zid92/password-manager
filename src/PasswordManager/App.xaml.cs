@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PasswordManager.ApiClient;
 using PasswordManager.Core.Data;
 using PasswordManager.Core.Services;
 using PasswordManager.Native;
@@ -39,35 +40,28 @@ public partial class App : Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                ConfigureServices(services);
+                ConfigureServices(context, services);
             })
             .Build();
     }
 
-    private static void ConfigureServices(IServiceCollection services)
+    private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        // Data
-        services.AddSingleton<IDatabaseService, DatabaseService>();
+        var apiBaseUrl = context.Configuration["ApiBaseUrl"] ?? "https://localhost:5001";
 
-        // Services
-        services.AddSingleton<IEncryptionService, EncryptionService>();
-        services.AddSingleton<ICredentialService, CredentialService>();
+        // All clients use the central API; no local vault.
+        services.AddSingleton<IUseRemoteApi>(new UseRemoteApiFlag(useRemoteApi: true));
+        services.AddSingleton<HttpClient>(_ => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+        services.AddSingleton<IDatabaseService, ApiBackedDatabaseService>();
+        services.AddSingleton<IEncryptionService, RemoteStubEncryptionService>();
+        services.AddSingleton<ICredentialService, ApiBackedCredentialService>();
+
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IWindowsHelloService, WindowsHelloService>();
         services.AddSingleton<IGlobalHotkeyService, GlobalHotkeyService>();
         services.AddSingleton<IActiveWindowService, ActiveWindowService>();
         services.AddSingleton<IRankingService, RankingService>();
         services.AddSingleton<IBreachCheckService, BreachCheckService>();
-
-        // Remote API client (for future integration with central server)
-        services.AddSingleton(sp =>
-        {
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri("https://localhost:5001")
-            };
-            return new ApiClient(httpClient);
-        });
 
         // ViewModels
         services.AddTransient<MainViewModel>();

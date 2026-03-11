@@ -68,6 +68,15 @@ app.MapGet("/api/credentials/{id:int}", async (int id, IDatabaseService database
     return item is null ? Results.NotFound() : Results.Ok(item);
 });
 
+app.MapGet("/api/credentials/{id:int}/password", async (int id, ICredentialService credentials) =>
+{
+    var credential = await credentials.GetByIdAsync(id);
+    if (credential is null)
+        return Results.NotFound();
+    var password = credentials.DecryptPassword(credential);
+    return Results.Ok(new { Password = password });
+});
+
 app.MapPost("/api/credentials", async ([FromBody] SaveCredentialRequest request, ICredentialService credentials) =>
 {
     var credential = new Credential

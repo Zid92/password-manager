@@ -25,7 +25,7 @@ public class ApiClientTests
         });
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://localhost") };
-        var api = new ApiClient(client);
+        var api = new PasswordManager.Services.ApiClient(client);
 
         var result = await api.OpenVaultAsync("secret");
 
@@ -53,7 +53,7 @@ public class ApiClientTests
         });
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://localhost") };
-        var api = new ApiClient(client);
+        var api = new PasswordManager.Services.ApiClient(client);
 
         var result = await api.GetCredentialsAsync();
 

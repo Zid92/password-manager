@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Net.Http;
 using PasswordManager.Core.Data;
 using PasswordManager.Core.Models;
 using PasswordManager.Core.Services;
@@ -13,6 +14,7 @@ public partial class LoginViewModel : ViewModelBase
     private readonly IDatabaseService _databaseService;
     private readonly IEncryptionService _encryptionService;
     private readonly IWindowsHelloService _windowsHelloService;
+    private readonly IUseRemoteApi _useRemoteApi;
 
     [ObservableProperty]
     private string _masterPassword = string.Empty;
@@ -45,12 +47,14 @@ public partial class LoginViewModel : ViewModelBase
         INavigationService navigationService,
         IDatabaseService databaseService,
         IEncryptionService encryptionService,
-        IWindowsHelloService windowsHelloService)
+        IWindowsHelloService windowsHelloService,
+        IUseRemoteApi useRemoteApi)
     {
         _navigationService = navigationService;
         _databaseService = databaseService;
         _encryptionService = encryptionService;
         _windowsHelloService = windowsHelloService;
+        _useRemoteApi = useRemoteApi;
 
         _ = CheckWindowsHelloAvailabilityAsync();
     }
@@ -161,10 +165,16 @@ public partial class LoginViewModel : ViewModelBase
     {
         try
         {
-            // Initialize database with master password
+            // Initialize database (local) or open vault on server (remote)
             await _databaseService.InitializeAsync(MasterPassword);
 
-            // Verify password
+            if (_useRemoteApi.UseRemoteApi)
+            {
+                _navigationService.NavigateToMain();
+                return;
+            }
+
+            // Verify password (local vault only)
             var storedHash = await _databaseService.GetSettingAsync(SettingsKeys.MasterPasswordHash);
             var storedSaltBase64 = await _databaseService.GetSettingAsync(SettingsKeys.Salt);
 
@@ -191,6 +201,14 @@ public partial class LoginViewModel : ViewModelBase
         catch (SQLite.SQLiteException)
         {
             ErrorMessage = "Incorrect master password. Please try again.";
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Cannot reach the server. Check API URL and try again.";
+        }
+        catch (Exception ex) when (ex.InnerException is not null)
+        {
+            ErrorMessage = "Incorrect master password or server error. Please try again.";
         }
     }
 

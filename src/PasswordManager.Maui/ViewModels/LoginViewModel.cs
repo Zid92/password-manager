@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Net.Http;
 using PasswordManager.Core.Data;
 using PasswordManager.Core.Models;
 using PasswordManager.Core.Services;
@@ -13,6 +14,7 @@ public partial class LoginViewModel : ViewModelBase
     private readonly IEncryptionService _encryptionService;
     private readonly IBiometricService _biometricService;
     private readonly IMauiNavigationService _navigationService;
+    private readonly IUseRemoteApi _useRemoteApi;
 
     [ObservableProperty]
     private string _masterPassword = string.Empty;
@@ -39,12 +41,14 @@ public partial class LoginViewModel : ViewModelBase
         IDatabaseService databaseService,
         IEncryptionService encryptionService,
         IBiometricService biometricService,
-        IMauiNavigationService navigationService)
+        IMauiNavigationService navigationService,
+        IUseRemoteApi useRemoteApi)
     {
         _databaseService = databaseService;
         _encryptionService = encryptionService;
         _biometricService = biometricService;
         _navigationService = navigationService;
+        _useRemoteApi = useRemoteApi;
     }
 
     public async Task InitializeAsync()
@@ -135,6 +139,12 @@ public partial class LoginViewModel : ViewModelBase
         {
             await _databaseService.InitializeAsync(MasterPassword);
 
+            if (_useRemoteApi.UseRemoteApi)
+            {
+                await _navigationService.NavigateToAsync("//main");
+                return;
+            }
+
             var storedHash = await _databaseService.GetSettingAsync(SettingsKeys.MasterPasswordHash);
             var storedSaltBase64 = await _databaseService.GetSettingAsync(SettingsKeys.Salt);
 
@@ -159,6 +169,14 @@ public partial class LoginViewModel : ViewModelBase
         catch (SQLite.SQLiteException)
         {
             SetError("Incorrect master password");
+        }
+        catch (HttpRequestException)
+        {
+            SetError("Cannot reach the server. Check API URL and try again.");
+        }
+        catch (Exception ex) when (ex.InnerException is not null)
+        {
+            SetError("Incorrect master password or server error. Please try again.");
         }
     }
 
