@@ -1,6 +1,6 @@
 # Password Manager
 
-A secure, cross-platform password manager with biometric authentication and breach checking. **All clients (Web, WPF, MAUI) use a central HTTP API** — one vault on the server.
+A secure, cross-platform password manager with breach checking. **All clients (Web, WPF, MAUI) use a central HTTP API** — one vault on the server.
 
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-purple)
 ![Windows](https://img.shields.io/badge/Platform-Windows-blue)
@@ -9,6 +9,8 @@ A secure, cross-platform password manager with biometric authentication and brea
 ![macOS](https://img.shields.io/badge/Platform-macOS-lightgray)
 ![Build](https://img.shields.io/github/actions/workflow/status/Zid92/password-manager/ci.yml?branch=master)
 ![License](https://img.shields.io/badge/License-MIT-green)
+
+**Quick start:** run `dotnet run --project PasswordManager.Api`, then in another terminal `dotnet run --project PasswordManager.Blazor` and open the URL in the browser.
 
 ## Architecture
 
@@ -32,15 +34,14 @@ All clients talk to the same API; there is no local vault. The server holds a si
 
 ```
 PasswordManager/
+├── PasswordManager.Api/             # ASP.NET Core HTTP API (central server)
+├── PasswordManager.Blazor/          # Blazor WebAssembly (web UI)
+├── PasswordManager.Contracts/      # Shared DTOs for API
+├── PasswordManager.ApiClient/      # API-backed IDatabaseService / ICredentialService
 ├── src/
 │   ├── PasswordManager.Core/       # Shared library (models, services)
 │   ├── PasswordManager/            # WPF desktop (Windows)
-│   ├── PasswordManager.Maui/       # MAUI (Android, iOS, macOS, Windows)
-│   └── (API lives in repo root)
-├── PasswordManager.Api/             # ASP.NET Core HTTP API (central server)
-├── PasswordManager.Blazor/         # Blazor WebAssembly (web UI)
-├── PasswordManager.Contracts/      # Shared DTOs for API
-├── PasswordManager.ApiClient/      # API-backed IDatabaseService / ICredentialService
+│   └── PasswordManager.Maui/       # MAUI (Android, iOS, macOS, Windows)
 ├── tests/PasswordManager.Tests/
 └── PasswordManager.slnx
 ```
