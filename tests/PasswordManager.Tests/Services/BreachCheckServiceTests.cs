@@ -42,7 +42,7 @@ public class BreachCheckServiceTests
     [Fact]
     public void ComputeSha1Hash_WithUnicode_ReturnsValidHash()
     {
-        var hash = ComputeSha1HashPublic("пароль");
+        var hash = ComputeSha1HashPublic("密码"); // non-Latin unicode password
 
         Assert.Equal(40, hash.Length);
     }

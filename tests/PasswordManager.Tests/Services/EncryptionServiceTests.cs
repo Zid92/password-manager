@@ -72,7 +72,7 @@ public class EncryptionServiceTests
     [InlineData("a")]
     [InlineData("short")]
     [InlineData("This is a longer password with spaces and special chars !@#$%")]
-    [InlineData("Пароль на русском языке")]
+    [InlineData("パスワード日本語")] // password text in Japanese
     [InlineData("密码中文")]
     [InlineData("🔐🔑💻")]
     public void EncryptDecrypt_WithVariousInputs_ReturnsOriginal(string input)
