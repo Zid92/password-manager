@@ -47,7 +47,9 @@ public partial class App : Application
 
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        var apiBaseUrl = context.Configuration["ApiBaseUrl"] ?? "https://localhost:5001";
+        // All desktop clients use the same central API.
+        // Default matches launchSettings for PasswordManager.Api.
+        var apiBaseUrl = context.Configuration["ApiBaseUrl"] ?? "http://localhost:5131";
 
         // All clients use the central API; no local vault.
         services.AddSingleton<IUseRemoteApi>(new UseRemoteApiFlag(useRemoteApi: true));

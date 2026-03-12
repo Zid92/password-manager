@@ -11,7 +11,7 @@ namespace PasswordManager.Maui;
 
 public static class MauiProgram
 {
-    private const string ApiBaseUrl = "https://localhost:5001";
+    private const string ApiBaseUrl = "http://localhost:5131";
 
     public static MauiApp CreateMauiApp()
     {

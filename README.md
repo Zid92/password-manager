@@ -10,7 +10,14 @@ A secure, cross-platform password manager with breach checking. **All clients (W
 ![Build](https://img.shields.io/github/actions/workflow/status/Zid92/password-manager/ci.yml?branch=master)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-**Quick start:** run `dotnet run --project PasswordManager.Api`, then in another terminal `dotnet run --project PasswordManager.Blazor` and open the URL in the browser.
+**Quick start (dev):**
+
+- Terminal 1: `dotnet run --project PasswordManager.Api`
+- Terminal 2: `dotnet run --project PasswordManager.Blazor` and open the URL in the browser.
+- Optional desktop clients: `dotnet run --project src/PasswordManager/PasswordManager.csproj` (WPF) and  
+  `dotnet run --project src/PasswordManager.Maui/PasswordManager.Maui.csproj -f net10.0-windows10.0.19041.0` (MAUI on Windows).
+
+Or use the helper script: `.\stack.ps1 start` / `.\stack.ps1 stop` / `.\stack.ps1 restart`.
 
 ## Architecture
 
@@ -56,7 +63,7 @@ From the repository root:
 dotnet run --project PasswordManager.Api
 ```
 
-Leave this running. By default it listens on **https://localhost:5001** (see output for the exact URL).
+Leave this running. By default it listens on **http://localhost:5131** (see output for the exact URL).
 
 ### 2. Run a client
 
@@ -66,7 +73,7 @@ Leave this running. By default it listens on **https://localhost:5001** (see out
 dotnet run --project PasswordManager.Blazor
 ```
 
-Open the URL shown in the console (e.g. `http://localhost:5180`). The Blazor app uses the API URL from `PasswordManager.Blazor/wwwroot/appsettings.json` (`ApiBaseUrl`, default `https://localhost:5001`).
+Open the URL shown in the console (e.g. `http://localhost:5180`). The Blazor app uses the API URL from `PasswordManager.Blazor/wwwroot/appsettings.json` (`ApiBaseUrl`, default `http://localhost:5131`).
 
 **Windows WPF:**
 
@@ -99,7 +106,7 @@ API base URL is set in `MauiProgram.cs` (`ApiBaseUrl` constant).
 
 | Place | Setting | Description |
 |-------|---------|-------------|
-| `PasswordManager.Blazor/wwwroot/appsettings.json` | `ApiBaseUrl` | API base URL for Blazor (default `https://localhost:5001`) |
+| `PasswordManager.Blazor/wwwroot/appsettings.json` | `ApiBaseUrl` | API base URL for Blazor (default `http://localhost:5131`) |
 | `src/PasswordManager/appsettings.json` | `ApiBaseUrl` | API base URL for WPF |
 | `src/PasswordManager.Maui/MauiProgram.cs` | `ApiBaseUrl` | API base URL for MAUI (constant) |
 

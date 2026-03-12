@@ -56,6 +56,14 @@ public partial class LoginViewModel : ViewModelBase
         _windowsHelloService = windowsHelloService;
         _useRemoteApi = useRemoteApi;
 
+        // In remote API mode there is no local "first run" concept.
+        // The server creates the vault when it is first opened, so the UI
+        // should always behave as an unlock screen (no confirm password).
+        if (_useRemoteApi.UseRemoteApi)
+        {
+            IsFirstRun = false;
+        }
+
         _ = CheckWindowsHelloAvailabilityAsync();
     }
 
